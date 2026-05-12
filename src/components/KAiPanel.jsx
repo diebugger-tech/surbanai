@@ -71,9 +71,9 @@ const KAiPanel = ({ aktiveProjekt, onClose }) => {
   const askKaiOllama = async (userMessage) => {
     const kontext = await loadWikiKontext(aktiveProjekt?.name);
     const systemPrompt = [
-      'Du bist KAi, der KI-Assistent von KAiOSS.',
-      'Antworte praezise, direkt und im Terminal-Stil.',
-      'Keine langen Einleitungen. Fokus auf das Wesentliche.',
+      'Du bist KAi, KI-Assistent von KAiOSS.',
+      'Antworte auf natürliche Sprache — du bist kein Terminal und führst keine Befehle aus.',
+      'Antworte präzise und hilfreich.',
       kontext ? '\n' + kontext : ''
     ].join('\n');
 
