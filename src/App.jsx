@@ -15,7 +15,7 @@ import TodoPanel from './components/TodoPanel';
 import CreateProjectModal from './components/CreateProjectModal';
 import TerminalLog from './components/TerminalLog';
 import CommandPalette from './components/CommandPalette';
-import KaiAssistant from './components/KaiAssistant';
+import KAiPanel from './components/KAiPanel';
 import ProjectHeader from './components/ProjectHeader';
 import ObsidianSync from './components/ObsidianSync';
 import WelcomeScreen from './components/WelcomeScreen';
@@ -34,6 +34,7 @@ export default function App() {
   const [showCommandPalette, setShowCommandPalette] = useState(false);
   const [selectedWikiEntry, setSelectedWikiEntry] = useState(null);
   const [showObsidianSync, setShowObsidianSync] = useState(false);
+  const [showKaiPanel, setShowKaiPanel] = useState(false);
 
   // Custom Hooks for business logic extraction
   useKeyboardNavigation({ 
@@ -98,7 +99,24 @@ export default function App() {
         />
       )}
 
-      <KaiAssistant project={selectedProject} />
+      {showKaiPanel && (
+        <div style={styles.kaiOverlay}>
+          <KAiPanel 
+            aktiveProjekt={selectedProject} 
+            onClose={() => setShowKaiPanel(false)} 
+          />
+        </div>
+      )}
+
+      {!showKaiPanel && (
+        <button 
+          style={styles.kaiBubble}
+          onClick={() => setShowKaiPanel(true)}
+          title="KAi Assistant öffnen"
+        >
+          🤖
+        </button>
+      )}
 
       <footer className="footer-terminal">(c) 2026 ANDREAS BADER // {'>'} kaioss::ready // TERMINAL_UI</footer>
       
@@ -138,3 +156,36 @@ export default function App() {
     </div>
   );
 }
+
+const styles = {
+  kaiBubble: {
+    position: 'fixed',
+    bottom: '2rem',
+    right: '2rem',
+    width: '60px',
+    height: '60px',
+    borderRadius: '50%',
+    backgroundColor: 'var(--bg-secondary, #161b22)',
+    border: '1px solid #1D9E75',
+    boxShadow: '0 0 20px rgba(29, 158, 117, 0.3)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '1.5rem',
+    cursor: 'pointer',
+    zIndex: 2000,
+    transition: 'transform 0.2s ease',
+    padding: 0
+  },
+  kaiOverlay: {
+    position: 'fixed',
+    top: 0,
+    right: 0,
+    width: '400px',
+    height: '100vh',
+    zIndex: 3000,
+    boxShadow: '-5px 0 25px rgba(0,0,0,0.5)',
+    borderLeft: '1px solid var(--border, #30363d)',
+    backgroundColor: 'var(--bg-primary, #0d1117)'
+  }
+};
