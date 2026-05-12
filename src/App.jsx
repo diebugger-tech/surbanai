@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useSurrealDB } from './hooks/useSurrealDB';
 import { useWikiStats } from './hooks/useWikiStats';
 import { useToast } from './hooks/useToast';
+import { useKeyboardNavigation } from './hooks/useKeyboardNavigation';
+import { useProjectDragDrop } from './hooks/useProjectDragDrop';
 import { useLog } from './context/LogContext';
 import { COLUMNS } from './constants';
 import db from './lib/db';
@@ -33,6 +35,14 @@ export default function App() {
   const [selectedWikiEntry, setSelectedWikiEntry] = useState(null);
   const [showObsidianSync, setShowObsidianSync] = useState(false);
 
+  // Custom Hooks for business logic extraction
+  useKeyboardNavigation({ 
+    setShowWiki, setShowTodo, setShowCreateModal, 
+    setSelectedProjectId, setShowCommandPalette, logEvent 
+  });
+
+  const { handleDragStart, handleDrop } = useProjectDragDrop(showToast);
+
   // Single wiki live subscription via dedicated hook
   const wikiStats = useWikiStats((res) => logEvent(res.action, 'wiki', res.result));
 
@@ -51,35 +61,6 @@ export default function App() {
     return () => { if (liveId) db.kill(liveId).catch(() => {}); };
   }, [logEvent]);
 
-  // Keyboard navigation
-  useEffect(() => {
-    const handleKeyDown = (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-      
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        setShowCommandPalette(prev => !prev);
-      }
-      if (e.key === '?') {
-        setShowWiki(prev => !prev);
-        logEvent('view', 'wiki', null, 'Wiki toggled');
-      }
-      if (e.key === 't' || e.key === 'T') {
-        setShowTodo(prev => !prev);
-        logEvent('view', 'todo', null, 'Todo panel toggled');
-      }
-      if (e.key === 'Escape') {
-        setShowWiki(false);
-        setShowTodo(false);
-        setShowCreateModal(false);
-        setSelectedProjectId(null);
-        setShowCommandPalette(false);
-      }
-    };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [logEvent]);
-
   useEffect(() => {
     document.body.className = theme === 'light' ? 'light-theme' : '';
     localStorage.setItem('theme', theme);
@@ -93,20 +74,6 @@ export default function App() {
     setShowWiki(true);
     setShowCommandPalette(false);
   }, []);
-
-  const handleDragStart = (e, id) => e.dataTransfer.setData('text/plain', id);
-  const handleDrop = async (e, status) => {
-    e.preventDefault();
-    const id = e.dataTransfer.getData('text/plain');
-    if (!id || id === 'drag') return;
-
-    try {
-      await db.query('UPDATE type::thing($id) SET status = $status, updated = time::now()', { id, status });
-      showToast('Project moved successfully', 'success');
-    } catch (err) {
-      showToast('Move failed', 'error');
-    }
-  };
 
   return (
     <div style={{ minHeight: '100vh', padding: '2rem' }}>
