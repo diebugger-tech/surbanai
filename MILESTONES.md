@@ -107,4 +107,4 @@
 - [x] DB Namespace: `kaioss`
 - [x] Backup-Dateiname: `kaioss_backup.surql`
 - [x] GitHub Repo umbenennen (surbanai → kaioss)
-- [ ] SurrealDB Einreichung aktualisieren
+- [x] SurrealDB Einreichung aktualisieren

@@ -15,7 +15,7 @@
   - [x] Loading Skeleton beim DB-Connect
   - [x] Leere Spalten besser darstellen (NO TASKS)
   - [x] Integriertes Wiki-Panel mit Sidebar
-  - [x] Rebranding: SurKAi → surbanai
+  - [x] Rebranding: Surbanai/SurKAi → **KAiOSS** (Final)
 
 ## v1.3 — Core CRUD
 - [ ] [+] NEW_PROJECT Button im Header
