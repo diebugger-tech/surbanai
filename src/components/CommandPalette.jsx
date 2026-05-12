@@ -30,7 +30,7 @@ function TypeBadge({ typ }) {
 }
 
 // ─── KAi Ollama helper ─────────────────────────────────────────────────────
-// Calls local Ollama — same pattern as KaiAssistant.jsx but returns a string
+// Calls local Ollama — same pattern as KAiPanel.jsx but returns a string
 async function askKAi(prompt) {
   const res = await fetch('http://localhost:11434/api/generate', {
     method: 'POST',
