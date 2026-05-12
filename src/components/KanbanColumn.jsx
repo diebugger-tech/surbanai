@@ -29,6 +29,7 @@ const ghostStyle = {
 export default function KanbanColumn({
   column,
   projects,
+  allProjects,
   isLoading,
   onDragStart,
   onDragOver,
@@ -128,7 +129,7 @@ export default function KanbanColumn({
           {/* Empty state — shown only when no ghost is active */}
           {projects.length === 0 && !isOver && (
             column.id === 'backlog' ? (
-              <BacklogDashboard wikiStats={wikiStats || {}} />
+              <BacklogDashboard allProjects={allProjects || []} wikiStats={wikiStats || {}} />
             ) : (
               <div style={styles.emptyState}>&gt; NO TASKS</div>
             )

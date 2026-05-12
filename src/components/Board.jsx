@@ -50,6 +50,7 @@ export default function Board({
           key={col.id}
           column={col}
           projects={projects.filter(p => p.status === col.id)}
+          allProjects={projects}
           isLoading={isLoading}
           onDragStart={onDragStart}
           onDragOver={(e, spalteId, clientY) => {

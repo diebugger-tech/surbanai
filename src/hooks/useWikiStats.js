@@ -37,7 +37,7 @@ export function useWikiStats(onLiveEvent) {
     });
 
     return () => {
-      unsubPromise.then(u => u?.());
+      unsubPromise.then(uuid => db.kill(uuid)).catch(() => {});
     };
   // onLiveEvent intentionally excluded from deps to avoid re-subscribing on every render
   // eslint-disable-next-line react-hooks/exhaustive-deps

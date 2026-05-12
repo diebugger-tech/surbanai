@@ -58,10 +58,11 @@ export default function App() {
 
   // Projekt live subscription for terminal logging (wiki logging is handled by useWikiStats)
   useEffect(() => {
-    const unsubProj = db.live('projekt', (res) => logEvent(res.action, 'projekt', res.result));
-    return () => {
-      unsubProj.then(u => u());
-    };
+    let liveId = null;
+    db.live('projekt', (res) => logEvent(res.action, 'projekt', res.result))
+      .then(uuid => { liveId = uuid; })
+      .catch(err => console.warn('[App] db.live projekt failed:', err));
+    return () => { if (liveId) db.kill(liveId).catch(() => {}); };
   }, []);
 
   // Der aktuell ausgewählte Projekt-Datensatz

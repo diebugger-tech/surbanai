@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function BacklogDashboard({ allProjects, wikiStats }) {
+export default function BacklogDashboard({ allProjects = [], wikiStats = {} }) {
   const totalProjects = allProjects.length;
   const totalTasks = Object.values(wikiStats).reduce((acc, stats) => acc + (stats.total || 0), 0);
   const totalDone = Object.values(wikiStats).reduce((acc, stats) => acc + (stats.done || 0), 0);
