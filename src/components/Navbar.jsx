@@ -1,7 +1,16 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { createBackup } from '../utils/backup';
 
 export default function Navbar({ theme, toggleTheme, dbStatus, onWikiOpen, onTodoOpen, onCreateOpen, onObsidianSync, showToast }) {
+  const [logoSubtitle, setLogoSubtitle] = useState('AI-native project hub // v1.4.0');
+
+  const logoParts = [
+    { text: 'K', subtitle: 'Knowledge Management core' },
+    { text: 'Ai', subtitle: 'Artificial Intelligence native' },
+    { text: 'OS', subtitle: 'Open Source System' },
+    { text: 'S', subtitle: 'SurrealDB powered backend' }
+  ];
+
   const handleBackup = () => {
     createBackup({
       url: import.meta.env.VITE_SURREAL_URL,
@@ -23,14 +32,23 @@ export default function Navbar({ theme, toggleTheme, dbStatus, onWikiOpen, onTod
       paddingBottom: '1rem' 
     }}>
       <div>
-        <h1 className="logo-text" style={{ margin: 0, fontSize: '1.8rem', letterSpacing: '2px' }}>
-          <span className="k-part">K</span>
-          <span className="ai-part">Ai</span>
-          <span className="os-part">OS</span>
-          <span className="s-part">S</span>
+        <h1 
+          className="logo-text" 
+          style={{ margin: 0, fontSize: '1.8rem', letterSpacing: '2px' }}
+          onMouseLeave={() => setLogoSubtitle('AI-native project hub // v1.4.0')}
+        >
+          {logoParts.map((part, idx) => (
+            <span 
+              key={idx}
+              className={`${part.text.toLowerCase().replace('ai', 'ai')}-part`}
+              onMouseEnter={() => setLogoSubtitle(`${part.subtitle} // v1.4.0`)}
+            >
+              {part.text}
+            </span>
+          ))}
         </h1>
-        <div className="logo-subtitle" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem', transition: 'all 0.3s ease' }}>
-          AI-native project hub // v1.4.0
+        <div className="logo-subtitle" style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.4rem', transition: 'all 0.3s ease', minHeight: '1.2rem' }}>
+          {logoSubtitle}
         </div>
       </div>
       <div style={{ display: 'flex', gap: '0.8rem', alignItems: 'center' }}>
