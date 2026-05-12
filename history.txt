@@ -1,5 +1,4 @@
 #V2
-UPDATE projekt:terminal SET name='3DNTerminal', stack='Rust / Bevy / Wayland', desc='3D Terminal für Cosmic Desktop', icon='🖥️', status='in-progress', cmd_start='3dn', cmd_stop='pkill -f cargo', updated=time::now();
 UPDATE projekt:cabellistpro SET name='CabellistPro', stack='FastAPI / Python / MySQL', desc='B2B SaaS Kabelmanagement & HV-Testing', icon='🚀', status='done', cmd_start='make start', cmd_stop='make stop', updated=time::now();
 UPDATE projekt:guterprompt SET name='GuterPrompt', stack='PHP 8.3 / SvelteKit / Flarum', desc='Community Prompt-Bewertungsmodell', icon='📝', status='in-progress', cmd_start='diebugger', cmd_stop='pkill -f npm', updated=time::now();
 UPDATE projekt:pflanternen SET name='Pflanternen', stack='Bash / SurrealDB / NixOS', desc='NixOS KI-Automatisierung Framework', icon='🌿', status='in-progress', cmd_start='~/Projekte/aktiv/Pflanternen/bin/diagnose.sh', cmd_stop='', updated=time::now();
@@ -99,3 +98,4 @@ REMOVE EVENT IF EXISTS wiki_auto_create ON TABLE projekt;
 DEFINE EVENT wiki_auto_create ON TABLE projekt WHEN $event = "CREATE" THEN {  INSERT INTO wiki {    projekt: $after.name,    typ: 'doc',    titel: 'Uebersicht',    inhalt: 'System-generierte Uebersicht fuer ' + $after.name,    erstellt: time::now(),    geaendert: time::now(),    status: 'open',    prioritaet: 'medium'  };};
 -- 3. Migration: Populate Wiki for existing projects (Run manually)
 /*FOR $p IN (SELECT name FROM projekt) {  IF (SELECT count() FROM wiki WHERE projekt = $p.name AND titel = 'Uebersicht') = 0 {    INSERT INTO wiki {      projekt: $p.name,      typ: 'doc',      titel: 'Uebersicht',      inhalt: 'System-generierte Uebersicht fuer ' + $p.name,      erstellt: time::now(),      geaendert: time::now(),      status: 'open',      prioritaet: 'medium'    };  };};*/
+UPDATE projekt:surbanai SET name = 'KAiOSS v1.4 Final' ;
