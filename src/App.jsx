@@ -37,9 +37,9 @@ export default function App() {
   const [showKaiPanel, setShowKaiPanel] = useState(false);
 
   // Custom Hooks for business logic extraction
-  useKeyboardNavigation({ 
-    setShowWiki, setShowTodo, setShowCreateModal, 
-    setSelectedProjectId, setShowCommandPalette, logEvent 
+  useKeyboardNavigation({
+    setShowWiki, setShowTodo, setShowCreateModal,
+    setSelectedProjectId, setShowCommandPalette, setShowKaiPanel, logEvent
   });
 
   const { handleDragStart, handleDrop } = useProjectDragDrop(showToast);

@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 
-export function useKeyboardNavigation({ 
-  setShowWiki, 
-  setShowTodo, 
-  setShowCreateModal, 
-  setSelectedProjectId, 
+export function useKeyboardNavigation({
+  setShowWiki,
+  setShowTodo,
+  setShowCreateModal,
+  setSelectedProjectId,
   setShowCommandPalette,
-  logEvent 
+  setShowKaiPanel,
+  logEvent
 }) {
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -34,10 +35,11 @@ export function useKeyboardNavigation({
         setShowCreateModal(false);
         setSelectedProjectId(null);
         setShowCommandPalette(false);
+        setShowKaiPanel(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [setShowWiki, setShowTodo, setShowCreateModal, setSelectedProjectId, setShowCommandPalette, logEvent]);
+  }, [setShowWiki, setShowTodo, setShowCreateModal, setSelectedProjectId, setShowCommandPalette, setShowKaiPanel, logEvent]);
 }
