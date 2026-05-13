@@ -115,15 +115,15 @@ export default function DetailPanel({ projectId, projects = [], isOpen, onClose,
     }
   }, [formData, projectId, onNotify]);
 
-  const handleDelete = async () => {
+  const handleArchive = async () => {
     if (!projectId) return;
     try {
-      await db.query('DELETE type::thing($id)', { id: projectId.toString() });
-      onNotify('Project deleted', 'success');
+      await db.query('UPDATE type::thing($id) SET status = "archived", updated = time::now()', { id: projectId.toString() });
+      onNotify('Projekt archiviert', 'success');
       onClose();
     } catch (err) {
-      console.error('Delete failed:', err);
-      onNotify('Delete failed', 'error');
+      console.error('Archive failed:', err);
+      onNotify('Archive failed', 'error');
     }
   };
 
@@ -303,17 +303,17 @@ export default function DetailPanel({ projectId, projects = [], isOpen, onClose,
                 style={styles.deleteBtn} 
                 onClick={() => setShowConfirmDelete(true)}
               >
-                [ DELETE PROJECT ]
+                [ ARCHIVIEREN ]
               </button>
             ) : (
               <div style={{ marginTop: '1rem', border: '1px solid var(--error)', padding: '1rem', textAlign: 'center' }}>
-                <div style={{ color: 'var(--error)', fontSize: '0.8rem', marginBottom: '1rem' }}>CONFIRM_DELETION? THIS_ACTION_IS_PERMANENT.</div>
+                <div style={{ color: 'var(--error)', fontSize: '0.8rem', marginBottom: '1rem' }}>CONFIRM_ARCHIVE? PROJECT_WILL_BE_HIDDEN.</div>
                 <div style={{ display: 'flex', gap: '1rem' }}>
                   <button 
                     style={{ ...styles.actionBtn('var(--error)'), flex: 2 }} 
-                    onClick={handleDelete}
+                    onClick={handleArchive}
                   >
-                    [ YES, DELETE ]
+                    [ YES, ARCHIVE ]
                   </button>
                   <button 
                     style={{ ...styles.actionBtn('var(--bg-secondary)'), color: 'var(--text-primary)', flex: 1, border: '1px solid var(--border)' }} 

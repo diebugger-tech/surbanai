@@ -44,8 +44,8 @@ export function useSurrealDB() {
 
         setDbStatus('ONLINE');
 
-        // Initial fetch
-        const initialProjects = await db.query('SELECT * FROM projekt').then(r => r[0]);
+        // Initial fetch (exclude archived projects)
+        const initialProjects = await db.query('SELECT * FROM projekt WHERE status != "archived" ORDER BY erstellt DESC').then(r => r[0]);
         if (initialProjects && isMounted) {
           const data = initialProjects.result || initialProjects;
           setProjects(data);
@@ -58,17 +58,24 @@ export function useSurrealDB() {
           setProjects(prev => {
             let next;
             if (action === 'CREATE') {
-              next = [...prev, result];
+              if (result.status !== 'archived') next = [...prev, result];
             } else if (action === 'UPDATE' || action === 'CHANGE') {
-              const exists = prev.find(p => p.id === result.id);
-              next = exists ? prev.map(p => p.id === result.id ? result : p) : [...prev, result];
+              if (result.status === 'archived') {
+                next = prev.filter(p => p.id !== result.id);
+              } else {
+                const exists = prev.find(p => p.id === result.id);
+                next = exists ? prev.map(p => p.id === result.id ? result : p) : [...prev, result];
+              }
             } else if (action === 'DELETE') {
               next = prev.filter(p => p.id !== result.id);
             } else {
               next = prev;
             }
-            localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-            return next;
+            if (next) {
+              localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+              return next;
+            }
+            return prev;
           });
         });
 
