@@ -4,29 +4,28 @@
 
 ## Sofort — Phase 1
 
-- [ ] **models.config.js** erstellen
+- [x] **models.config.js** erstellen
       Zentrales Modell-Routing: Ollama / Claude API / Gemini / Groq / Mistral
       Jedes Modell mit DSGVO-Klassifizierung (green/yellow/red)
 
-- [ ] **DSGVO-Farbkodierung im Modell-Dropdown**
+- [x] **DSGVO-Farbkodierung im Modell-Dropdown**
       🟢 Lokal (Ollama) — kein Datentransfer, immer sicher
       🟡 USA (Claude / Gemini / Groq / OpenAI) — DPF-zertifiziert, Drittlandtransfer
       🔴 China API (Qwen / DeepSeek / GLM) — kein DPF, Datenweitergabe gesetzlich verpflichtend
       Tooltip bei Auswahl: kurze Erklärung was das bedeutet
 
-- [ ] **Dynamic Wiki**
+- [x] **Dynamic Wiki**
       `wiki` Tabelle in SurrealDB anlegen
       Felder: `projekt, typ, titel, inhalt, status, priorität, erstellt, geändert`
 
-- [ ] **TodoPanel**
+- [x] **TodoPanel**
       Floating draggable Modal, T-Shortcut oder Navbar-Button
       Filter-Tabs: Alle / SurKAi / KAi
       Inline-Add, LIVE SELECT
 
-- [ ] **Backup-Button (💾)**
+- [x] **Backup-Button (💾)**
       fetch() → http://localhost:8000/export mit Basic Auth
       Download als timestamped `.surql`
-      `make db-backup` Makefile-Eintrag
 
 - [ ] **Shortcuts-Dokumentation** im Wiki aktualisieren
 
@@ -85,6 +84,14 @@
 - [x] Integriertes Wiki-Panel mit Sidebar
 - [x] updated Timestamp via time::now() server-seitig
 - [x] Doppelte db.live('wiki') Subscription gefixt
+- [x] DSGVO-Toast bei Modellwechsel (yellow/red)
+- [x] window.db Security-Issue entfernt
+- [x] FOUC-Prevention (blocking inline script + html background)
+- [x] ESC schließt KAiPanel
+- [x] KAiPanel X-Button Fix (overflow:hidden Clipping)
+- [x] WikiPanel + TodoPanel db.kill() Crash gefixt (SurrealDB v2 API)
+- [x] Backdrop-Filter AMD GPU Bug entfernt (black screen fix)
+- [x] KAi-Panel Chat-History live streaming (immutable state)
 
 ---
 
