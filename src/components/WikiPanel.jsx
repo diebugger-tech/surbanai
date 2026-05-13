@@ -17,7 +17,15 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
 
   // Auto-switch page & scroll when opened from CommandPalette
   useEffect(() => {
-    if (!selectedWikiEntry || entries.length === 0) return;
+    if (!selectedWikiEntry) return;
+
+    if (selectedWikiEntry === 'Datenschutz & Modelle') {
+      setActivePage('dsgvo');
+      return;
+    }
+
+    if (entries.length === 0) return;
+    
     // Find the entry to determine which section to show
     const target = entries.find(e => e.id?.toString() === selectedWikiEntry?.toString());
     if (target?.typ && ['doc', 'bug', 'todo', 'system'].includes(target.typ)) {
@@ -66,9 +74,28 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
       }
     };
 
+    let liveId = null;
+    let isMounted = true;
+
+    const startLive = async () => {
+      try {
+        const id = await db.live('projekt', () => {
+          if (isMounted) loadProjects();
+        });
+        if (isMounted) liveId = id;
+        else db.kill(id).catch(() => {});
+      } catch (err) {
+        console.warn('[Wiki] Project live sync failed:', err);
+      }
+    };
+
     loadProjects();
-    const projLivePromise = db.live('projekt', () => loadProjects());
-    return () => projLivePromise.then(uuid => db.kill(uuid)).catch(() => {});
+    startLive();
+
+    return () => {
+      isMounted = false;
+      if (liveId) db.kill(liveId).catch(() => {});
+    };
   }, []);
 
   // Sync currentScope when projekt prop changes (e.g. from DetailPanel context)
@@ -98,11 +125,31 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
   }, [currentScope]);
 
   useEffect(() => {
+    let liveId = null;
+    let isMounted = true;
+
+    const startLive = async () => {
+      try {
+        const id = await db.live('wiki', ({ action, result }) => {
+          if (!isMounted) return;
+          if (currentScope === 'GLOBAL' || result.projekt === currentScope || result.typ === 'system') {
+            load();
+          }
+        });
+        if (isMounted) liveId = id;
+        else db.kill(id).catch(() => {});
+      } catch (err) {
+        console.warn('[Wiki] Content live sync failed:', err);
+      }
+    };
+
     load();
-    const wikiLivePromise = db.live('wiki', ({ action, result }) => {
-      if (currentScope === 'GLOBAL' || result.projekt === currentScope || result.typ === 'system') load();
-    });
-    return () => wikiLivePromise.then(uuid => db.kill(uuid)).catch(() => {});
+    startLive();
+
+    return () => {
+      isMounted = false;
+      if (liveId) db.kill(liveId).catch(() => {});
+    };
   }, [load, currentScope]);
 
   const handleSaveEntry = async (entry) => {
@@ -152,6 +199,7 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
 
   const sections = [
     { id: 'system', title: 'System', icon: '⚙️', type: 'system' },
+    { id: 'dsgvo', title: 'Datenschutz & Modelle', icon: '🛡️', type: 'meta' },
     { id: 'doc', title: 'Docs', icon: '📄', type: 'project' },
     { id: 'bug', title: 'Bugs', icon: '🪲', type: 'project' },
     { id: 'todo', title: 'TODOs', icon: '✅', type: 'project' },
@@ -267,6 +315,37 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
             >
               [ DISCARD ]
             </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (activePage === 'dsgvo') {
+      return (
+        <div className="wiki-markdown">
+          <h2 style={{ textTransform: 'uppercase', marginBottom: '1.5rem' }}>🛡️ DATENSCHUTZ & MODELLE</h2>
+          <div className="markdown-body">
+            <p>KAiOSS ist als <strong>Privacy-First AI Operating System</strong> konzipiert. Deine Daten gehören dir.</p>
+            
+            <h3>🟢 GREEN: Lokal / EU (Maximaler Schutz)</h3>
+            <ul>
+              <li><strong>Ollama:</strong> Alle Daten bleiben auf deiner Hardware. Keine Übertragung nach außen.</li>
+              <li><strong>Mistral (EU):</strong> Datenverarbeitung in Europa unter strengen DSGVO-Auflagen.</li>
+            </ul>
+
+            <h3>🟡 YELLOW: USA (Standard Schutz)</h3>
+            <ul>
+              <li><strong>Claude (Anthropic) / Gemini (Google):</strong> Datenverarbeitung in den USA. Geschützt durch das <em>Data Privacy Framework (DPF)</em>.</li>
+            </ul>
+
+            <h3>🔴 RED: Drittstaaten (Kritisch)</h3>
+            <ul>
+              <li><strong>DeepSeek / Qwen (China):</strong> Verarbeitung in Ländern ohne Angemessenheitsbeschluss. Nutzung nur für unkritische Daten empfohlen.</li>
+            </ul>
+
+            <div style={{ marginTop: '2rem', padding: '1rem', background: 'rgba(29, 158, 117, 0.1)', border: '1px solid var(--accent-green)' }}>
+              <strong>HINWEIS:</strong> Diese Einstufung dient der Orientierung. Bitte beachte die jeweiligen Nutzungsbedingungen der Anbieter.
+            </div>
           </div>
         </div>
       );
