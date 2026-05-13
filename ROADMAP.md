@@ -48,6 +48,16 @@
 - [ ] Pipeline-Status Panel (LIVE SELECT auf task_queue)
 - [ ] agent_log Panel in KAiOSS Dashboard
 - [ ] Fehlerbehandlung: rejected Tasks → zurück in Queue mit Kontext
+- [ ] **kai_log Tabelle** — Audit-Trail für jede KAi-Aktion
+      Felder: anfrage, modell, kontext, ergebnis, dauer_ms, timestamp
+      Fundament für Agent-Selbstoptimierung und Debugging
+- [ ] **task Tabelle** (eigenständig, nicht nur Field auf projekt)
+      Felder: titel, beschreibung, status, assignee, agent, parent_task, projekt
+      Voraussetzung für Master-Agent-Delegation
+- [ ] **Approval-Gate UI-Primitiv**
+      Generisches `<ApprovalGate action="" onAllow={} onDeny={} />`
+      KAi triggert dieses Gate vor destruktiven Aktionen
+      Kein Agent-Write ohne explizite User-Bestätigung
 
 ---
 
