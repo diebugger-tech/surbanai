@@ -27,20 +27,39 @@ export default function KanbanCard({ project, onDragStart, onDragEnd, onClick })
   };
 
   useEffect(() => {
-    if (!project?.name) return;
-
-    // Initial load
-    loadProgress(project.name).then(setProgress);
-
-    // Live Update subscription
     let liveId = null;
-    db.live(
-      `SELECT * FROM wiki WHERE projekt = '${project.name}' AND typ = 'todo'`,
-      () => loadProgress(project.name).then(setProgress)
-    ).then(id => { liveId = id; });
+    let isMounted = true;
+
+    const startLive = async () => {
+      if (!project?.name) return;
+      try {
+        const id = await db.live('wiki', ({ action, result }) => {
+          if (!isMounted) return;
+          if (result.projekt === project.name && result.typ === 'todo') {
+            loadProgress(project.name).then(setProgress);
+          }
+        });
+        
+        if (isMounted) {
+          liveId = id;
+        } else if (id && db.kill) {
+          db.kill(id).catch(() => {});
+        }
+      } catch (err) {
+        console.warn('[Pulse] Live subscription failed:', err);
+      }
+    };
+
+    if (project?.name) {
+      loadProgress(project.name).then(setProgress);
+      startLive();
+    }
 
     return () => {
-      if (liveId) db.kill(liveId).catch(() => {});
+      isMounted = false;
+      if (liveId && db.kill) {
+        db.kill(liveId).catch(() => {});
+      }
     };
   }, [project?.name]);
 
