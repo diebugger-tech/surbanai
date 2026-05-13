@@ -59,7 +59,7 @@ export default function CreateProjectModal({ isOpen, onClose, onNotify, onCreate
   const styles = {
     overlay: {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'var(--bg-overlay)', backdropFilter: 'blur(8px)', zIndex: 3000,
+      backgroundColor: 'var(--bg-overlay)', zIndex: 3000,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
     },
     container: {

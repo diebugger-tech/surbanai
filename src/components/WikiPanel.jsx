@@ -436,7 +436,7 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
   const styles = {
     overlay: {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'var(--bg-overlay)', backdropFilter: 'blur(10px)', zIndex: 2000,
+      backgroundColor: 'var(--bg-overlay)', zIndex: 2000,
       display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem'
     },
     container: {

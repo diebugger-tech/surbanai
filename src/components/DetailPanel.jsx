@@ -138,7 +138,7 @@ export default function DetailPanel({ projectId, projects = [], isOpen, onClose,
   const styles = {
     overlay: {
       position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-      backgroundColor: 'var(--bg-overlay)', backdropFilter: 'blur(2px)', zIndex: 999
+      backgroundColor: 'var(--bg-overlay)', zIndex: 999
     },
     panel: {
       position: 'fixed', top: 0, right: 0, bottom: 0, width: '450px',
