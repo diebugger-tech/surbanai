@@ -101,10 +101,10 @@
 
 ---
 
-## Rebranding SurKAi → KAiOSS
-- [x] App-Titel + Logo im Frontend ändern
+## KAiOSS — Core Setup ✅
+- [x] App-Titel + Logo im Frontend (KAiOSS)
 - [x] Terminal Log: `> kaioss::ready`
-- [x] DB Namespace: `kaioss`
+- [x] DB Namespace & Database: `kaioss`
 - [x] Backup-Dateiname: `kaioss_backup.surql`
-- [x] GitHub Repo umbenennen (surbanai → kaioss)
-- [x] SurrealDB Einreichung aktualisieren
+- [x] GitHub Repository finalisiert
+- [x] SurrealDB Showcase Submission
