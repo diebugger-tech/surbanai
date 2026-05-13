@@ -20,7 +20,7 @@
 
 - [x] **TodoPanel**
       Floating draggable Modal, T-Shortcut oder Navbar-Button
-      Filter-Tabs: Alle / SurKAi / KAi
+      Filter-Tabs: Alle / KAiOSS / KAi
       Inline-Add, LIVE SELECT
 
 - [x] **Backup-Button (💾)**
