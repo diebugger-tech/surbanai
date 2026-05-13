@@ -221,7 +221,7 @@ const KAiPanel = ({ aktiveProjekt, onClose, onOpenWiki }) => {
     }
   };
 
-  const askKAi = async (userMessage, onChunk) => {
+  const askKAi = async (userMessage, onChunk, history = []) => {
     const modell = MODELLE.find(m => m.id === aktivesModel);
     if (!modell) throw new Error('MODELL_NICHT_GEFUNDEN');
 
@@ -240,6 +240,10 @@ const KAiPanel = ({ aktiveProjekt, onClose, onOpenWiki }) => {
           model: modell.model,
           messages: [
             { role: 'system', content: systemPrompt },
+            ...history.map(m => ({
+              role: m.role === 'kai' ? 'assistant' : 'user',
+              content: m.content
+            })),
             { role: 'user', content: userMessage }
           ],
           stream: true
@@ -291,6 +295,7 @@ const KAiPanel = ({ aktiveProjekt, onClose, onOpenWiki }) => {
     setMessages(prev => [...prev, { role: 'kai', content: '', isStreaming: true }]);
 
     try {
+      const history = messages.filter(m => !m.isStreaming && m.content);
       await askKAi(frage, (content) => {
         setMessages(prev => {
           const next = [...prev];
@@ -299,7 +304,7 @@ const KAiPanel = ({ aktiveProjekt, onClose, onOpenWiki }) => {
           next[next.length - 1] = last;
           return next;
         });
-      });
+      }, history);
 
       setMessages(prev => {
         const next = [...prev];
