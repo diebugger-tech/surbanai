@@ -99,3 +99,16 @@ DEFINE FIELD erstellt ON TABLE wiki TYPE datetime DEFAULT time::now();
 DEFINE FIELD geaendert ON TABLE wiki TYPE datetime DEFAULT time::now();
 DEFINE EVENT wiki_auto_create ON TABLE projekt WHEN $event = "CREATE" THEN {  INSERT INTO wiki {    projekt: $after.name,    typ: 'doc',    titel: 'Uebersicht',    inhalt: 'System-generierte Uebersicht fuer ' + $after.name,    erstellt: time::now(),    geaendert: time::now(),    status: 'open',    prioritaet: 'medium'  };};
 SELECT count() FROM wiki
+
+-- KAiOSS v1.4.x Agentic Improvement Session (2026-05-13)
+-- Changes:
+--   fix:  migrate live subscriptions to SurrealDB v2 API (liveQuery.kill) — App.jsx, useSurrealDB.js
+--   feat: pass full chat history to Ollama in KAiPanel (context-aware conversations)
+--   feat: soft-delete projects via archive status instead of hard delete (DetailPanel, useSurrealDB)
+--   perf: move WikiPanel styles to module level (avoid per-render allocation)
+--   fix:  compute TodoPanel SNAP_POINTS at render time via useMemo
+--   feat: add KAi button to Navbar (quick access to KAi assistant)
+--   feat: DetailPanel auto-save (debounced 500ms) + tags UI (already present from earlier session)
+--
+-- SELECT * FROM projekt WHERE status != 'archived' ORDER BY erstellt DESC;
+-- UPDATE type::thing($id) SET status = 'archived', updated = time::now();
