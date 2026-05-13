@@ -16,13 +16,16 @@ export function useSurrealDB() {
   const liveQueryId = useRef(null);
 
   useEffect(() => {
+    let isMounted = true;
     async function initDB() {
       try {
         setLoading(true);
         setDbError(null);
         
-        // Close any stale connection first (e.g. after HMR or previous failed attempt)
+        // Close any stale connection first
         try { await db.close(); } catch (_) { /* ignore */ }
+
+        if (!isMounted) return;
 
         // Attempt connection
         await db.connect(import.meta.env.VITE_SURREAL_URL, {
@@ -34,18 +37,24 @@ export function useSurrealDB() {
           }
         });
         
+        if (!isMounted) {
+          db.close();
+          return;
+        }
+
         setDbStatus('ONLINE');
 
-        // Initial fetch from projects table
+        // Initial fetch
         const initialProjects = await db.query('SELECT * FROM projekt').then(r => r[0]);
-        if (initialProjects) {
-          const data = initialProjects.result || initialProjects; // Handle different SDK response formats
+        if (initialProjects && isMounted) {
+          const data = initialProjects.result || initialProjects;
           setProjects(data);
           localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
         }
 
-        // Live Subscription for real-time updates
-        liveQueryId.current = await db.live('projekt', ({ action, result }) => {
+        // Live Subscription
+        const id = await db.live('projekt', ({ action, result }) => {
+          if (!isMounted) return;
           setProjects(prev => {
             let next;
             if (action === 'CREATE') {
@@ -58,17 +67,22 @@ export function useSurrealDB() {
             } else {
               next = prev;
             }
-            // Update local cache on every live change
             localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
             return next;
           });
         });
 
+        if (isMounted) {
+          liveQueryId.current = id;
+        } else if (id && db.kill) {
+          db.kill(id).catch(() => {});
+        }
+
       } catch (err) {
+        if (!isMounted) return;
         console.error('SurrealDB Connection Error:', err);
         setDbError(err.message || String(err));
         
-        // Fallback to localStorage if SurrealDB is unreachable
         const cached = localStorage.getItem(STORAGE_KEY);
         if (cached) {
           try {
@@ -81,16 +95,16 @@ export function useSurrealDB() {
           setDbStatus('OFFLINE');
         }
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     }
 
     initDB();
 
     return () => {
-      // Cleanup: Kill live query if component unmounts
-      if (liveQueryId.current) {
-        db.kill(liveQueryId.current).catch(() => { /* ignore cleanup errors */ });
+      isMounted = false;
+      if (liveQueryId.current && db.kill) {
+        db.kill(liveQueryId.current).catch(() => {});
       }
     };
   }, []);
