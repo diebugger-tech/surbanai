@@ -1,6 +1,6 @@
 # KAiOSS GitHub Issues
 
-Bereit zum Anlegen auf github.com/diebugger-tech/surbanai
+Bereit zum Anlegen auf github.com/diebugger-tech/kaioss
 
 ---
 
@@ -41,7 +41,7 @@ Aktuell: statisch hardcoded (7 Seiten, Deutsch).
 
 Floating draggable Modal (nicht fullscreen).
 Öffnen via T-Shortcut oder Navbar-Button.
-Filter-Tabs: Alle / SurKAi / KAi.
+Filter-Tabs: Alle / KAiOSS / KAi.
 Inline-Add, LIVE SELECT für live Updates.
 
 ---

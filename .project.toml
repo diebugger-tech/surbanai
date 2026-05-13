@@ -1,8 +1,8 @@
 [project]
-name = "surbanai"
+name = "kaioss"
 stack = "React / SurrealDB / Vite"
-desc = "Realtime Kanban Board"
-icon = "📋"
+desc = "AI-native project hub"
+icon = "❄️"
 status = "in-progress"
 tags = ["#React", "#SurrealDB", "#OpenSource"]
 cmd_start = "make dev"
