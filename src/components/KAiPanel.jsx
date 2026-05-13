@@ -105,17 +105,17 @@ const styles = {
     cursor: 'pointer'
   },
   closeBtn: {
-    background: 'var(--bg-secondary)',
-    border: '1px solid var(--border)',
+    background: 'transparent',
+    border: 'none',
     color: 'var(--text-secondary)',
     borderRadius: '4px',
-    padding: '2px 8px',
+    padding: '2px 6px',
     cursor: 'pointer',
-    fontFamily: 'monospace',
-    fontSize: '11px',
-    marginLeft: '8px',
+    fontSize: '16px',
+    lineHeight: 1,
+    marginLeft: '4px',
     flexShrink: 0,
-    transition: 'all 0.2s ease'
+    transition: 'color 0.15s ease'
   }
 };
 
@@ -398,11 +398,12 @@ const KAiPanel = ({ aktiveProjekt, onClose, onOpenWiki }) => {
 
           <button
             onClick={onClose}
-            onMouseOver={handleMouseOver}
-            onMouseOut={handleMouseOut}
+            onMouseOver={(e) => { e.currentTarget.style.color = '#E24B4A'; }}
+            onMouseOut={(e) => { e.currentTarget.style.color = 'var(--text-secondary)'; }}
             style={styles.closeBtn}
+            title="Schließen (ESC)"
           >
-            [ ESC_CLOSE ]
+            ✕
           </button>
         </div>
       </div>
