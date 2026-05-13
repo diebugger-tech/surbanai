@@ -15,11 +15,11 @@ export default function TodoPanel({ onClose }) {
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
-  const SNAP_POINTS = [
+  const SNAP_POINTS = React.useMemo(() => [
     { x: window.innerWidth - 320, y: 80 },
     { x: window.innerWidth - 320, y: window.innerHeight - 400 },
     { x: 20, y: 80 },
-  ];
+  ], []);
 
   const load = useCallback(async () => {
     try {
