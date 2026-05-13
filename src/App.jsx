@@ -101,6 +101,7 @@ export default function App() {
         theme={theme} toggleTheme={toggleTheme} dbStatus={dbStatus} 
         onWikiOpen={() => setShowWiki(true)} onTodoOpen={() => setShowTodo(true)}
         onCreateOpen={() => setShowCreateModal(true)} onObsidianSync={() => setShowObsidianSync(true)}
+        onKaiOpen={() => setShowKaiPanel(true)}
         showToast={showToast}
       />
 

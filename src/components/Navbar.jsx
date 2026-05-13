@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { createBackup } from '../utils/backup';
 
-export default function Navbar({ theme, toggleTheme, dbStatus, onWikiOpen, onTodoOpen, onCreateOpen, onObsidianSync, showToast }) {
+export default function Navbar({ theme, toggleTheme, dbStatus, onWikiOpen, onTodoOpen, onCreateOpen, onObsidianSync, onKaiOpen, showToast }) {
   const [logoSubtitle, setLogoSubtitle] = useState('AI-native project hub // v1.4.0');
 
   const logoParts = [
@@ -87,6 +87,13 @@ export default function Navbar({ theme, toggleTheme, dbStatus, onWikiOpen, onTod
             title="Todos [T]"
           >
             T
+          </button>
+          <button
+            onClick={onKaiOpen}
+            style={{ ...styles.actionBtn, color: '#1D9E75' }}
+            title="KAi Assistant [K]"
+          >
+            KAi
           </button>
         </div>
 
