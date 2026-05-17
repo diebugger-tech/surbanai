@@ -5,7 +5,10 @@ help: ## Zeigt diese Hilfe
 
 dev: ## Startet den Vite Dev-Server (Port 5174)
 	@echo "🚀 Starte KAiOSS..."
-	npm run dev
+	trap 'kill %1' SIGINT; npm run dev & node scripts/todo-sync.js
+
+todo-sync: ## Startet den TODO.md -> SurrealDB Sync manuell
+	node scripts/todo-sync.js
 
 stop: ## Stoppt den Dev-Server
 	@echo "🛑 Stoppe KAiOSS..."
