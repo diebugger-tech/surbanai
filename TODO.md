@@ -26,8 +26,8 @@ _Stand: 17.05.2026_
 
 - [ ] #19 SurrealDB als Event-Bus
 - [ ] #4 Resilienz (Recovery, Locking)
-- [ ] #22 Task-Verifikation + proaktives Review
-- [ ] #11 NixOS-native Integration (agents.nix)
+- [ ] #22 Task-Verifikation + proaktives Review (Sandbox-NixOS-VM via Firecracker/crosvm als Spielbrett & Test-Environment)
+- [ ] #11 NixOS-native Integration (agents.nix, Pflanternen Stufe 3: Automatische Build-Evaluation und VM-Checks)
 
 ## Phase 4 — Ecosystem & Expansion
 
@@ -38,7 +38,7 @@ _Stand: 17.05.2026_
 
 ## Phase 5 — Horizon
 
-- [ ] #26 Fine-Tuning auf kai_log-Daten
+- [ ] #26 Fine-Tuning auf kai_log-Daten (Reinforcement Learning aus nixos_training_game Versuchen via Unsloth & Ollama)
 - [ ] #28 Cognee-Trigger definieren
 - [ ] #6 TUI evaluieren
 - [ ] #9 Multi-User → GitHub Issue
