@@ -9,8 +9,8 @@ _Stand: 17.05.2026_
 - [x] #16 Datensicherung mit Hash-Werten (sha256)
 - [x] #30a Legacy Wiki-TODOs Migration (obsolet — keine Legacy-Daten)
 - [x] #31 TODO.md → SurrealDB Sync (todo-sync.js)
-- [ ] #3 Skill: kaioss-security
-- [ ] #21 Human-in-the-Loop Konzept
+- [ ] #3 Skill: kaioss-security (Architektur-Entwurf: Alias-Methode, Whitelist commands.json, NixOS Sandboxing via bubblewrap)
+- [ ] #21 Human-in-the-Loop Konzept (HITL Bestätigung für kritische Befehle)
 
 ## Phase 2 — KAi Bootstrap
 
@@ -20,6 +20,7 @@ _Stand: 17.05.2026_
 - [ ] #15 Modulare Prompt-Pipeline
 - [ ] #8 KAi Priorisierungslogik
 - [ ] #30b useTaskDB in DetailPanel integrieren
+- [ ] #32 cmd-runner (Sicherer Hintergrund-Prozess-Executor auf Basis von #3 & #21)
 
 ## Phase 3 — Infrastruktur & Resilienz
 
