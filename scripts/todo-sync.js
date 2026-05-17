@@ -16,6 +16,7 @@ const db = new Surreal();
 const TODO_FILENAMES = [
   'TODO.md', 'todo.md',
   'TODOLIST.md', 'TodoList.md', 'todolist.md',
+  'TODOLISTE.md', 'Todoliste.md', 'todoliste.md',
   'ROADMAP.md', 'roadmap.md',
   'MEILENSTEINE.md', 'meilensteine.md',
   'MILESTONES.md', 'milestones.md',
