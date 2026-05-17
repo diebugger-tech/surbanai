@@ -16,6 +16,7 @@ DEFINE FIELD tags ON TABLE projekt TYPE array<string>;
 DEFINE FIELD cmd_start ON TABLE projekt TYPE string;
 DEFINE FIELD cmd_stop ON TABLE projekt TYPE string;
 DEFINE FIELD updated ON TABLE projekt TYPE datetime DEFAULT time::now();
+DEFINE FIELD todo_path ON TABLE projekt TYPE option<string>;
 
 DEFINE TABLE wiki SCHEMAFULL;
 DEFINE FIELD projekt ON TABLE wiki TYPE string;
