@@ -12,6 +12,27 @@ const BASE_PATHS = [
 
 const db = new Surreal();
 
+// Erweiterung 1: TODO_FILENAMES Array + Watcher Map
+const TODO_FILENAMES = [
+  'TODO.md', 'todo.md',
+  'TODOLIST.md', 'TodoList.md', 'todolist.md',
+  'ROADMAP.md', 'roadmap.md',
+  'MEILENSTEINE.md', 'meilensteine.md',
+  'MILESTONES.md', 'milestones.md',
+  'TASKS.md', 'tasks.md'
+];
+
+// Map: projektname -> { watcher, todoPath }
+const activeWatchers = new Map();
+
+function findTodoFile(basePath, folderPath) {
+    for (const filename of TODO_FILENAMES) {
+        const testPath = path.join(basePath, folderPath, filename);
+        if (fs.existsSync(testPath)) return testPath;
+    }
+    return null;
+}
+
 async function connectDB() {
     try {
         await db.connect(DB_ENDPOINT);
@@ -69,11 +90,10 @@ async function syncProject(projektname, folderPath) {
     let todoPath = null;
     let isArchiv = false;
     
-    // Finde TODO.md in aktiv oder archiv
+    // Finde TODO-Datei in aktiv oder archiv
     for (const basePath of BASE_PATHS) {
-        const testPath = path.join(basePath, folderPath, 'TODO.md');
-        if (fs.existsSync(testPath)) {
-            todoPath = testPath;
+        todoPath = findTodoFile(basePath, folderPath);
+        if (todoPath) {
             isArchiv = basePath.includes('archiv');
             break;
         }
@@ -81,7 +101,7 @@ async function syncProject(projektname, folderPath) {
     
     // Fix 4: ENOENT explizit abfangen + Logging
     if (!todoPath || !fs.existsSync(todoPath)) {
-        console.log(`[todo-sync] ${projektname}: TODO.md not found, skipped`);
+        console.log(`[todo-sync] ${projektname}: keine bekannte TODO-Datei gefunden, übersprungen`);
         return { synced: 0, removed: 0 };
     }
 
@@ -144,38 +164,70 @@ async function syncProject(projektname, folderPath) {
     }
 }
 
+async function startWatcher(projektname, folderPath) {
+    // Init-Sync ausführen
+    const syncResult = await syncProject(projektname, folderPath);
+    
+    // Nichts zu watchen oder Projekt ist im Archiv
+    if (!syncResult || !syncResult.todoPath || syncResult.isArchiv) {
+        return; 
+    }
+
+    const todoPath = syncResult.todoPath;
+
+    // Duplikat-Schutz prüfen
+    if (activeWatchers.has(projektname)) {
+        return; 
+    }
+
+    let fsWait = false;
+    const watcher = fs.watch(todoPath, async (event, filename) => {
+        if (filename) {
+            if (fsWait) return;
+            fsWait = setTimeout(() => { fsWait = false; }, 500); // Debounce
+            await syncProject(projektname, folderPath);
+        }
+    });
+
+    // Watcher in der Map speichern
+    activeWatchers.set(projektname, { watcher, todoPath });
+    console.log(`👀 Watcher gestartet für: ${projektname} (${path.basename(todoPath)})`);
+}
+
 async function startSync() {
     await connectDB();
     
-    // Fix 2: todo_path Override
+    // 1. Initiale Abfrage: Alle bestehenden Projekte auslesen und Watcher starten
     const res = await db.query('SELECT name, todo_path FROM projekt');
-    const projekte = res[0]; 
-
-    if (!projekte || projekte.length === 0) {
-        console.log('Keine Projekte gefunden.');
-        return;
-    }
-
+    const projekte = res[0] || [];
+    
     for (const p of projekte) {
         const projektname = p.name;
-        const folderPath = p.todo_path || p.name;
-        
-        const syncResult = await syncProject(projektname, folderPath);
-
-        // Fix 1: Watcher nur für aktiv/ — archiv ändert sich nicht
-        if (syncResult && syncResult.todoPath && !syncResult.isArchiv) {
-            let fsWait = false;
-            fs.watch(syncResult.todoPath, async (event, filename) => {
-                if (filename) {
-                    if (fsWait) return;
-                    fsWait = setTimeout(() => {
-                        fsWait = false;
-                    }, 500);
-                    await syncProject(projektname, folderPath);
-                }
-            });
-        }
+        const folderPath = p.todo_path || projektname;
+        await startWatcher(projektname, folderPath); 
     }
+
+    // 2. Live Query für NEUE, GEÄNDERTE oder GELÖSCHTE Projekte
+    console.log('📡 Starte Live Query für Tabelle "projekt"...');
+    await db.live('projekt', async (action, result) => {
+        const projektname = result.name;
+        const folderPath = result.todo_path || projektname;
+        
+        // Neues Projekt erstellt oder geupdated
+        if (action === 'CREATE' || action === 'UPDATE') {
+            console.log(`🔔 DB Event [${action}]: ${projektname}`);
+            await startWatcher(projektname, folderPath);
+        }
+        
+        // Projekt wurde gelöscht
+        if (action === 'DELETE') {
+            if (activeWatchers.has(projektname)) {
+                activeWatchers.get(projektname).watcher.close();
+                activeWatchers.delete(projektname);
+                console.log(`🛑 Watcher beendet für gelöschtes Projekt: ${projektname}`);
+            }
+        }
+    });
 }
 
 startSync();
