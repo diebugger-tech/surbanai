@@ -101,6 +101,7 @@ async function syncProject(projektname, folderPath) {
                 ELSE
                     (CREATE wiki CONTENT {
                         projekt: $projekt, typ: 'todo', titel: $titel,
+                        inhalt: '',
                         status: $status, tag: $tag, externes_id: $externes_id,
                         erstellt: time::now(), geaendert: time::now()
                     })

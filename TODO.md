@@ -17,25 +17,21 @@ Iterationstiefe flexibel je nach Zeit und Komplexität — kein starres Prozessm
 
 ## Phase 1 — Foundation & Security
 
-| ID | Task | depends_on | Status |
-|----|------|------------|--------|
-| #25 | Architektur-Review Workflow etablieren | — | ✅ done |
-| #23 | Task-Schema konsistenter machen | #25 | ✅ done — siehe finales Schema unten |
-| #16 | Datensicherung mit Hash-Werten (sha256) | — | ⬜ offen |
-| #3 | Skill: kaioss-security | — | ⬜ offen |
-| #21 | Human-in-the-Loop Konzept | #3 | ⬜ offen |
+- [x] #25 Architektur-Review Workflow etablieren
+- [x] #23 Task-Schema konsistenter machen
+- [x] #16 Datensicherung mit Hash-Werten (sha256)
+- [ ] #3 Skill: kaioss-security
+- [ ] #21 Human-in-the-Loop Konzept
 
 ---
 
 ## Phase 2 — KAi Bootstrap
 
-| ID | Task | depends_on | Status |
-|----|------|------------|--------|
-| #29 | Agent-Priorisierung | — | ⬜ offen |
-| #7 | Modell-Wahl für KAi | — | ⬜ offen |
-| #2 | Skills erstellen (.kai/) | — | ⬜ offen |
-| #15 | Modulare Prompt-Pipeline | #2, #3 | ⬜ offen |
-| #8 | KAi Priorisierungslogik | #23 | ⬜ offen |
+- [ ] #29 Agent-Priorisierung
+- [ ] #7 Modell-Wahl für KAi
+- [ ] #2 Skills erstellen (.kai/)
+- [ ] #15 Modulare Prompt-Pipeline
+- [ ] #8 KAi Priorisierungslogik
 
 **Nächster Schritt (Phase 2 Vorbereitung):**
 - `useTaskDB` Hook — Architektur-Entwurf: Claude → Gemini Review → Claude finales Review → Gemini implementiert
@@ -45,40 +41,34 @@ Iterationstiefe flexibel je nach Zeit und Komplexität — kein starres Prozessm
 
 ## Phase 3 — Infrastruktur & Resilienz
 
-| ID | Task | depends_on | Status |
-|----|------|------------|--------|
-| #19 | SurrealDB als Event-Bus | #23 | ⬜ offen |
-| #4 | Resilienz (Recovery, Locking) | #19 | ⬜ offen |
-| #22 | Task-Verifikation + proaktives Review | #23, #21 | ⬜ offen |
-| #11 | NixOS-native Integration (agents.nix) | #3, #4 | ⬜ offen |
-| #30a | LISTE2 in SurrealDB migrieren | #23, #19 | ✅ done |
+- [ ] #19 SurrealDB als Event-Bus
+- [ ] #4 Resilienz (Recovery, Locking)
+- [ ] #22 Task-Verifikation + proaktives Review
+- [ ] #11 NixOS-native Integration (agents.nix)
+- [x] #30a LISTE2 in SurrealDB migrieren
 
 ---
 
 ## Phase 4 — Ecosystem & Expansion
 
-| ID | Task | depends_on | Status |
-|----|------|------------|--------|
-| #13 | Agent-Pipeline | #19, #29 | ⬜ offen |
-| #18 | Agent-Governance | #13 | ⬜ offen |
-| #17 | LearnAgent Quellen | #13 | ⬜ offen |
-| #31 | TODO.md -> SurrealDB Sync (GitAgent Use-Case) | — | ✅ done |
-| #24 | FalkorDB Phase 2 (CabellistPro) | — | ⬜ offen |
+- [ ] #13 Agent-Pipeline
+- [ ] #18 Agent-Governance
+- [ ] #17 LearnAgent Quellen
+- [x] #31 TODO.md -> SurrealDB Sync (GitAgent Use-Case)
+- [ ] #24 FalkorDB Phase 2 (CabellistPro)
 
 ---
 
 ## Phase 5 — Horizon / Data-Driven Evolution
 
-| ID | Task | depends_on | Status |
-|----|------|------------|--------|
-| #26 | Fine-Tuning auf kai_log-Daten | Phase 1–4 | ⬜ offen |
-| #28 | Cognee-Trigger definieren | #26 | ⬜ offen |
-| #6 | TUI evaluieren | Web-UI stabil | ⬜ offen |
-| #9 | Multi-User → GitHub Issue | — | ⬜ offen |
-| #10 | Pi.dev evaluieren | — | ⬜ offen |
-| #14 | Hermes Agent als Referenz | — | ⬜ offen |
-| #20 | Skills als Nix-Flake-Outputs | #2 stabil | ⬜ offen |
-| #30 | Voice-Interface (Pipecat > LiveKit) | Web-UI stabil | ⬜ offen |
+- [ ] #26 Fine-Tuning auf kai_log-Daten
+- [ ] #28 Cognee-Trigger definieren
+- [ ] #6 TUI evaluieren
+- [ ] #9 Multi-User → GitHub Issue
+- [ ] #10 Pi.dev evaluieren
+- [ ] #14 Hermes Agent als Referenz
+- [ ] #20 Skills als Nix-Flake-Outputs
+- [ ] #30 Voice-Interface (Pipecat > LiveKit)
 
 ---
 
