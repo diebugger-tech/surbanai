@@ -1,17 +1,15 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import db from '../lib/db';
+import { useTaskDB, validateBeforeUpdate } from '../hooks/useTaskDB';
 
-export default function TodoPanel({ onClose }) {
+export default function TodoPanel({ onClose, onNotify }) {
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState('alle');
   const [newTodo, setNewTodo] = useState('');
   const [kaiPrompt, setKaiPrompt] = useState('');
   const [kaiLoading, setKaiLoading] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-  const [pos, setPos] = useState(() => {
-    const saved = localStorage.getItem('todoPanelPos');
-    return saved ? JSON.parse(saved) : { x: window.innerWidth - 420, y: 80 };
-  });
+  const [pos, setPos] = useState({ x: window.innerWidth - 420, y: 80 });
   const [dragging, setDragging] = useState(false);
   const dragOffset = useRef({ x: 0, y: 0 });
 
@@ -22,33 +20,26 @@ export default function TodoPanel({ onClose }) {
   ], []);
 
   const load = useCallback(async () => {
-    try {
-      const result = await db.query(
-        'SELECT * FROM wiki WHERE typ = $typ ORDER BY prioritaet ASC, erstellt DESC',
-        { typ: 'todo' }
-      );
-      const data = result[0]?.result || result[0] || [];
+    const { data, error } = await useTaskDB.fetchTasks();
+    if (!error) {
       setTodos(Array.isArray(data) ? data : []);
-    } catch (err) {
-      console.error('Todo load failed:', err);
+    } else {
+      console.error('Todo load failed:', error);
     }
   }, []);
 
   useEffect(() => {
-    let liveQuery = null;
+    let unsubscribe = null;
     let isMounted = true;
 
     const startLive = async () => {
-      try {
-        liveQuery = await db.live('wiki', ({ result }) => {
-          if (isMounted && result?.typ === 'todo') load();
-        });
-        if (!isMounted) {
-          liveQuery.kill().catch(() => {});
-          liveQuery = null;
-        }
-      } catch (err) {
-        console.warn('[Todo] Live sync failed:', err);
+      const { data, error } = await useTaskDB.subscribeTaskLive(() => {
+        if (isMounted) requestAnimationFrame(() => load());
+      });
+      if (!error && isMounted) {
+        unsubscribe = data;
+      } else if (!error && !isMounted) {
+        data(); // kill it if already unmounted
       }
     };
 
@@ -57,31 +48,38 @@ export default function TodoPanel({ onClose }) {
 
     return () => {
       isMounted = false;
-      if (liveQuery) liveQuery.kill().catch(() => {});
+      if (unsubscribe) unsubscribe();
     };
   }, [load]);
 
-  const toggleTodo = async (id, currentStatus) => {
-    await db.query('UPDATE $id SET status = $status, geaendert = time::now()', {
-      id,
-      status: currentStatus === 'done' ? 'open' : 'done'
-    });
+  const toggleTodo = async (currentTodo) => {
+    const update = currentTodo.status === 'done'
+      ? { status: 'offen', verifikation: 'ausstehend' }
+      : { status: 'done' };
+    const updatedTask = { ...currentTodo, ...update };
+    
+    const validation = validateBeforeUpdate(updatedTask, todos);
+    if (!validation.valid) {
+      // Toast mit validation.error anzeigen, kein Update.
+      if (onNotify) {
+        onNotify(validation.error, 'error');
+      } else {
+        console.warn(validation.error);
+      }
+      return;
+    }
+    
+    await useTaskDB.updateTask(currentTodo.id, update);
   };
 
   const addTodo = async (e) => {
     e.preventDefault();
     if (!newTodo.trim()) return;
-    await db.query(
-      'CREATE wiki SET projekt=$p, typ=$t, titel=$ti, inhalt=$i, status=$s, prioritaet=$pr, erstellt=time::now(), geaendert=time::now()',
-      {
-        p: filter === 'alle' ? 'KAiOSS' : filter,
-        t: 'todo',
-        ti: newTodo,
-        i: '',
-        s: 'open',
-        pr: 'medium'
-      }
-    );
+    
+    await useTaskDB.createTask({
+      projekt: filter === 'alle' ? 'KAiOSS' : filter,
+      titel: newTodo
+    });
     setNewTodo('');
   };
 
@@ -91,7 +89,7 @@ export default function TodoPanel({ onClose }) {
     try {
       const currentProj = filter === 'alle' ? 'KAiOSS' : filter;
       
-      // Fetch relevant wiki context
+      // Fetch relevant wiki context (Wiki existiert weiterhin für Doku/System)
       const wikiRes = await db.query(
         'SELECT titel, inhalt FROM wiki WHERE (projekt = $p OR typ = "system") AND typ != "todo" LIMIT 3',
         { p: currentProj }
@@ -109,10 +107,10 @@ export default function TodoPanel({ onClose }) {
       });
       const data = await res.json();
       if (data.response) {
-        await db.query(
-          'CREATE wiki SET projekt=$p, typ=$t, titel=$ti, inhalt=$i, status=$s, prioritaet=$pr, erstellt=time::now(), geaendert=time::now()',
-          { p: currentProj, t: 'todo', ti: data.response.trim().replace(/^"|"$/g, ''), i: '', s: 'open', pr: 'medium' }
-        );
+        await useTaskDB.createTask({
+          projekt: currentProj,
+          titel: data.response.trim().replace(/^"|"$/g, '')
+        });
         setKaiPrompt('');
       }
     } catch (err) {
@@ -143,7 +141,6 @@ export default function TodoPanel({ onClose }) {
       );
       const finalPos = nearest || pos;
       setPos(finalPos);
-      localStorage.setItem('todoPanelPos', JSON.stringify(finalPos));
     };
     window.addEventListener('mousemove', onMove);
     window.addEventListener('mouseup', onUp);
@@ -225,13 +222,13 @@ export default function TodoPanel({ onClose }) {
           <div style={{ padding: '0.8rem 1rem 0.4rem 1rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.65rem', color: 'var(--text-muted)', marginBottom: '0.4rem' }}>
               <span>PROJECT_PROGRESS</span>
-              <span>{Math.round((todos.filter(t => t.status === 'done').length / (todos.length || 1)) * 100)}%</span>
+              <span>{Math.round((filteredTodos.filter(t => t.status === 'done').length / (filteredTodos.length || 1)) * 100)}%</span>
             </div>
             <div style={{ height: '4px', backgroundColor: 'var(--bg-tertiary)', borderRadius: '2px', overflow: 'hidden' }}>
               <div style={{ 
                 height: '100%', 
                 backgroundColor: 'var(--accent-green)', 
-                width: `${(todos.filter(t => t.status === 'done').length / (todos.length || 1)) * 100}%`,
+                width: `${(filteredTodos.filter(t => t.status === 'done').length / (filteredTodos.length || 1)) * 100}%`,
                 transition: 'width 0.3s ease'
               }} />
             </div>
@@ -242,7 +239,7 @@ export default function TodoPanel({ onClose }) {
               <div key={todo.id} style={styles.todoItem}>
                 <div 
                   style={styles.checkbox(todo.status === 'done')} 
-                  onClick={() => toggleTodo(todo.id, todo.status)}
+                  onClick={() => toggleTodo(todo)}
                 >
                   {todo.status === 'done' ? '●' : '○'}
                 </div>
@@ -253,8 +250,8 @@ export default function TodoPanel({ onClose }) {
                 }}>
                   {todo.titel}
                 </span>
-                <span style={{ fontSize: '0.6rem', color: todo.prioritaet === 'high' ? 'var(--error)' : 'var(--text-muted)' }}>
-                  {todo.prioritaet.toUpperCase()}
+                <span style={{ fontSize: '0.6rem', color: todo.risiko === 'critical' ? 'var(--error)' : 'var(--text-muted)' }}>
+                  {todo.risiko ? todo.risiko.toUpperCase() : 'MEDIUM'}
                 </span>
               </div>
             ))}
