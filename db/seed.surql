@@ -48,7 +48,7 @@ CREATE task:demo_task1 SET
     verifikation = 'bestanden',
     verifiziert_von = 'human',
     projekt = 'KAiOSS Demo',
-    priorität = 1,
+    `priorität` = 1,
     tags = ['#Architecture'],
     akzeptanzkriterien = [
         { kriterium: 'Verbindung als Singleton implementiert', erfüllt: true },
@@ -63,7 +63,7 @@ CREATE task:demo_task2 SET
     risiko = 'high',
     verifikation = 'ausstehend',
     projekt = 'KAiOSS Demo',
-    priorität = 2,
+    `priorität` = 2,
     tags = ['#Security', '#UX'],
     akzeptanzkriterien = [
         { kriterium: 'Bestätigungs-Dialog bei rm/kill-Befehlen', erfüllt: true },
@@ -78,7 +78,7 @@ CREATE task:demo_task3 SET
     risiko = 'medium',
     verifikation = 'ausstehend',
     projekt = 'Pflanternen Demo',
-    priorität = 3,
+    `priorität` = 3,
     tags = ['#Bash', '#NixOS'],
     akzeptanzkriterien = [
         { kriterium: 'Commit-Hash als ID nutzen', erfüllt: false }
