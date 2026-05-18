@@ -1,0 +1,104 @@
+/* drag handle on the left margin */
+.wiki-resize-handle {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 6px;
+  height: 100%;
+  cursor: col-resize;
+  background-color: rgba(0, 255, 170, 0.1);
+  border-right: 1px solid var(--border);
+  z-index: 2005;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.wiki-resize-handle:hover,
+.wiki-resize-handle:active {
+  background-color: var(--accent, var(--accent-green, #00ffaa));
+  box-shadow: 0 0 8px var(--accent, var(--accent-green, #00ffaa));
+}
+
+/* ASCII cards grid for project stats */
+.project-overview-container {
+  border: 1px solid var(--accent, var(--accent-green, #00ffaa));
+  background-color: var(--bg-secondary);
+  font-family: monospace;
+  padding: 1rem;
+  margin-bottom: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.project-overview-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.project-overview-card:hover {
+  border: 1px solid var(--accent, var(--accent-green, #00ffaa));
+  background-color: rgba(0, 255, 170, 0.03);
+  box-shadow: 0 0 10px rgba(0, 255, 170, 0.1);
+}
+
+/* Project & Phase filter selector pills */
+.project-pill {
+  background-color: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  padding: 0.4rem 0.8rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-family: monospace;
+  border-radius: 2px;
+  transition: all 0.2s;
+  outline: none;
+}
+
+.project-pill:hover {
+  border-color: var(--accent, var(--accent-green, #00ffaa));
+  color: var(--text-primary);
+}
+
+.project-pill.active {
+  background-color: rgba(0, 255, 170, 0.05);
+  border: 1px solid var(--accent, var(--accent-green, #00ffaa));
+  color: var(--accent, var(--accent-green, #00ffaa));
+  box-shadow: 0 0 8px rgba(0, 255, 170, 0.15);
+}
+
+/* Scrollable horizontal pills container */
+.wiki-pills-container {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  margin-bottom: 1.2rem;
+  font-family: monospace;
+  padding-bottom: 0.5rem;
+  scrollbar-width: thin;
+}
+
+/* Custom scrollbar for premium theme */
+.wiki-pills-container::-webkit-scrollbar {
+  height: 4px;
+}
+
+.wiki-pills-container::-webkit-scrollbar-track {
+  background: var(--bg-secondary);
+}
+
+.wiki-pills-container::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 2px;
+}
+
+.wiki-pills-container::-webkit-scrollbar-thumb:hover {
+  background: var(--accent, var(--accent-green, #00ffaa));
+}
+
