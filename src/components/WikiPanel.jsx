@@ -6,6 +6,7 @@ import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Mermaid from './Mermaid';
 import { getPhaseProgress, getTotalProgress } from '../hooks/useWikiStats';
+import './WikiPanel.css';
 
 const styles = {
   overlay: {
@@ -170,6 +171,108 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
     const title = todo.titel?.trim() || '';
     return status === 'done' || status === 'erledigt' || title.startsWith('✔') || title.startsWith('[x]') || title.startsWith('[X]');
   };
+
+  const [containerWidth, setContainerWidth] = useState(() => {
+    const saved = localStorage.getItem('wiki_container_width');
+    return saved ? parseInt(saved, 10) : 1000;
+  });
+  useEffect(() => {
+    localStorage.setItem('wiki_container_width', containerWidth);
+  }, [containerWidth]);
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    const saved = localStorage.getItem('wiki_sidebar_collapsed');
+    return saved === 'true';
+  });
+  useEffect(() => {
+    localStorage.setItem('wiki_sidebar_collapsed', sidebarCollapsed);
+  }, [sidebarCollapsed]);
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const startWidth = containerWidth;
+
+    const handleMouseMove = (moveEvent) => {
+      const deltaX = startX - moveEvent.clientX;
+      const newWidth = Math.max(380, startWidth + deltaX * 2);
+      const cappedWidth = Math.min(newWidth, window.innerWidth * 0.8);
+      setContainerWidth(cappedWidth);
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
+  useEffect(() => {
+    setSelectedPhase('ALL');
+  }, [currentScope]);
+
+  const projectList = React.useMemo(() => {
+    return Array.from(new Set(allProjects.map(p => p.name))).filter(Boolean);
+  }, [allProjects]);
+
+  const isGlobal = !currentScope || currentScope === 'GLOBAL';
+
+  const projectStats = React.useMemo(() => {
+    const stats = {};
+    projectList.forEach(name => {
+      const projTodos = entries.filter(e => e.typ === 'todo' && e.projekt === name);
+      const total = projTodos.length;
+      const done = projTodos.filter(isCompleted).length;
+      const percent = total > 0 ? Math.round((done / total) * 100) : 0;
+      
+      const blocksCount = Math.round((percent / 100) * 5);
+      const blocks = '█'.repeat(blocksCount) + '░'.repeat(5 - blocksCount);
+      
+      stats[name] = { total, done, percent, blocks };
+    });
+    return stats;
+  }, [projectList, entries]);
+
+  const filtered = React.useMemo(() => {
+    return entries.filter(e => {
+      const matchesSearch = e.titel?.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           e.inhalt?.toLowerCase().includes(searchQuery.toLowerCase());
+      if (!matchesSearch) return false;
+      
+      if (activePage === 'shortcuts') return e.titel?.toLowerCase().includes('shortcut');
+      
+      const typeMatches = e.typ === activePage;
+      const scopeMatches = isGlobal || e.projekt === currentScope;
+      return typeMatches && scopeMatches;
+    });
+  }, [entries, searchQuery, activePage, currentScope, isGlobal]);
+
+  const todos = React.useMemo(() => {
+    if (activePage !== 'todo') return [];
+    return [...filtered].sort((a, b) => {
+      const phaseA = parsePhase(a.tag);
+      const phaseB = parsePhase(b.tag);
+      if (phaseA !== phaseB) return phaseA - phaseB;
+
+      const numA = parseTaskNumber(a.titel);
+      const numB = parseTaskNumber(b.titel);
+      return numA - numB;
+    });
+  }, [activePage, filtered]);
+
+  const filteredPhases = React.useMemo(() => {
+    if (isGlobal) {
+      return ['ALL', '1', '2', '3', '4', '5'];
+    }
+    const activePhases = Array.from(
+      new Set(
+        todos.map(t => parsePhase(t.tag).toString())
+      )
+    ).filter(p => p !== '0');
+    return ['ALL', ...activePhases.sort()];
+  }, [isGlobal, todos]);
 
   // Auto-switch page & scroll when opened from CommandPalette
   useEffect(() => {
@@ -511,32 +614,71 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
       );
     }
 
-    const filtered = entries.filter(e => {
-      const matchesSearch = e.titel.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                           e.inhalt.toLowerCase().includes(searchQuery.toLowerCase());
-      if (!matchesSearch) return false;
-      
-      if (activePage === 'shortcuts') return e.titel.toLowerCase().includes('shortcut');
-      
-      const typeMatches = e.typ === activePage;
-      const scopeMatches = currentScope === 'GLOBAL' || e.projekt === currentScope;
-      return typeMatches && scopeMatches;
-    });
-
     if (activePage === 'todo') {
       // TODO: Phase-Dependency-Graph (vis.js oder D3) — Phase 2 Feature
 
-      const todos = [...filtered].sort((a, b) => {
-        const phaseA = parsePhase(a.tag);
-        const phaseB = parsePhase(b.tag);
-        if (phaseA !== phaseB) return phaseA - phaseB;
-
-        const numA = parseTaskNumber(a.titel);
-        const numB = parseTaskNumber(b.titel);
-        return numA - numB;
-      });
-
       const totalProgress = getTotalProgress(todos);
+
+      const renderProjectPills = () => (
+        <div 
+          className="wiki-pills-container"
+          style={{
+            display: 'flex',
+            gap: '0.5rem',
+            flexWrap: 'nowrap',
+            overflowX: 'auto',
+            marginBottom: '1.2rem',
+            fontFamily: 'monospace',
+            paddingBottom: '0.5rem',
+            scrollbarWidth: 'thin'
+          }}
+        >
+          <button
+            onClick={() => setCurrentScope('GLOBAL')}
+            className={`wiki-project-pill ${currentScope === 'GLOBAL' ? 'active' : ''}`}
+            style={{
+              backgroundColor: currentScope === 'GLOBAL' ? 'rgba(0, 255, 170, 0.05)' : 'transparent',
+              border: currentScope === 'GLOBAL' ? '1px solid var(--accent, var(--accent-green, #00ffaa))' : '1px solid var(--border)',
+              color: currentScope === 'GLOBAL' ? 'var(--accent, var(--accent-green, #00ffaa))' : 'var(--text-muted)',
+              padding: '0.3rem 0.6rem',
+              cursor: 'pointer',
+              fontSize: '0.7rem',
+              fontFamily: 'inherit',
+              borderRadius: '2px',
+              transition: 'all 0.2s',
+              outline: 'none',
+              flexShrink: 0
+            }}
+          >
+            [ ALL PROJECTS ]
+          </button>
+          {projectList.map(name => {
+            const isActive = currentScope === name;
+            return (
+              <button
+                key={name}
+                onClick={() => setCurrentScope(name)}
+                className={`wiki-project-pill ${isActive ? 'active' : ''}`}
+                style={{
+                  backgroundColor: isActive ? 'rgba(0, 255, 170, 0.05)' : 'transparent',
+                  border: isActive ? '1px solid var(--accent, var(--accent-green, #00ffaa))' : '1px solid var(--border)',
+                  color: isActive ? 'var(--accent, var(--accent-green, #00ffaa))' : 'var(--text-muted)',
+                  padding: '0.3rem 0.6rem',
+                  cursor: 'pointer',
+                  fontSize: '0.7rem',
+                  fontFamily: 'inherit',
+                  borderRadius: '2px',
+                  transition: 'all 0.2s',
+                  outline: 'none',
+                  flexShrink: 0
+                }}
+              >
+                [ {name} ]
+              </button>
+            );
+          })}
+        </div>
+      );
 
       const renderProgressHUD = () => (
         <div style={{
@@ -576,15 +718,21 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
       );
 
       const renderPhasePills = () => {
-        const phases = ['ALL', '1', '2', '3', '4', '5'];
         return (
-          <div style={{
-            display: 'flex',
-            gap: '0.5rem',
-            marginBottom: '1.5rem',
-            fontFamily: 'monospace'
-          }}>
-            {phases.map(p => {
+          <div 
+            className="wiki-pills-container"
+            style={{
+              display: 'flex',
+              gap: '0.5rem',
+              flexWrap: 'nowrap',
+              overflowX: 'auto',
+              marginBottom: '1.5rem',
+              fontFamily: 'monospace',
+              paddingBottom: '0.5rem',
+              scrollbarWidth: 'thin'
+            }}
+          >
+            {filteredPhases.map(p => {
               const isActive = selectedPhase === p;
               return (
                 <button
@@ -601,11 +749,61 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
                     borderRadius: '2px',
                     transition: 'all 0.2s',
                     boxShadow: isActive ? '0 0 8px rgba(0, 255, 170, 0.15)' : 'none',
-                    outline: 'none'
+                    outline: 'none',
+                    flexShrink: 0
                   }}
                 >
                   [ {p === 'ALL' ? 'ALL' : `P${p}`} ]
                 </button>
+              );
+            })}
+          </div>
+        );
+      };
+
+      const renderProjectOverview = () => {
+        return (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.8rem',
+            fontFamily: 'monospace',
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border)',
+            padding: '1.2rem',
+            marginBottom: '1.5rem'
+          }}>
+            <div style={{ color: 'var(--accent-orange)', borderBottom: '1px solid var(--border)', paddingBottom: '0.5rem', marginBottom: '0.5rem', fontSize: '0.8rem' }}>
+              &gt; PROJECT ROADMAP OVERVIEW
+            </div>
+            {projectList.map(name => {
+              const stats = projectStats[name] || { total: 0, done: 0, percent: 0, blocks: '░░░░░' };
+              return (
+                <div
+                  key={name}
+                  onClick={() => setCurrentScope(name)}
+                  className="wiki-project-row"
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    padding: '0.6rem 0.8rem',
+                    border: '1px solid var(--border)',
+                    cursor: 'pointer',
+                    fontSize: '0.8rem',
+                    transition: 'all 0.2s'
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)' }}>
+                    <span>📁</span>
+                    <span style={{ fontWeight: 'bold' }}>{name}</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                    <span style={{ color: 'var(--text-muted)' }}>{stats.done}/{stats.total} DONE</span>
+                    <span style={{ color: 'var(--accent, var(--accent-green, #00ffaa))' }}>[{stats.blocks}]</span>
+                    <span style={{ fontWeight: 'bold', width: '35px', textAlign: 'right' }}>{stats.percent}%</span>
+                  </div>
+                </div>
               );
             })}
           </div>
@@ -621,8 +819,8 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
         if (collapsedPhases[phaseNum] !== undefined) {
           return collapsedPhases[phaseNum];
         }
-        const openCount = phaseTodos.filter(t => !isCompleted(t)).length;
-        return openCount === 0;
+        const progress = getPhaseProgress(todos, phaseNum);
+        return progress.percent > 0;
       };
 
       const togglePhase = (phaseNum, phaseTodos) => {
@@ -731,6 +929,7 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
             )}
           </div>
 
+          {renderProjectPills()}
           {renderProgressHUD()}
           {renderPhasePills()}
 
@@ -738,6 +937,8 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
             <div className="skeleton" style={{ height: '100px', width: '100%' }}></div>
           ) : todos.length === 0 ? (
             <div style={{ color: 'var(--text-muted)', marginTop: '2rem' }}>&gt; NO TODOS FOUND FOR [{currentScope}]</div>
+          ) : isGlobal && selectedPhase === 'ALL' ? (
+            renderProjectOverview()
           ) : selectedPhase === 'ALL' ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
               {uniquePhases.map(ph => {
@@ -826,10 +1027,20 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
 
   return (
     <div style={styles.overlay} onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <div style={styles.container}>
+      <div style={{ ...styles.container, width: `clamp(380px, ${containerWidth}px, 80vw)`, maxWidth: 'none' }}>
+        <div className="wiki-resize-handle" onMouseDown={handleMouseDown} />
         <button onClick={onClose} style={styles.closeBtn}>[ ESC_CLOSE ]</button>
         
-        <aside style={styles.sidebar}>
+        <aside style={{
+          ...styles.sidebar,
+          width: sidebarCollapsed ? '0px' : '260px',
+          minWidth: sidebarCollapsed ? '0px' : '260px',
+          padding: sidebarCollapsed ? '0px' : '1.5rem',
+          opacity: sidebarCollapsed ? 0 : 1,
+          overflow: 'hidden',
+          transition: 'width 0.3s cubic-bezier(0.4, 0, 0.2, 1), padding 0.3s ease, opacity 0.2s ease',
+          borderRight: sidebarCollapsed ? 'none' : '1px solid var(--border)'
+        }}>
           <div style={{ color: 'var(--accent-green)', fontWeight: 'bold', marginBottom: '0.5rem', fontSize: '1.1rem', letterSpacing: '1px' }}>KAiOSS_WIKI</div>
           <div style={{ color: 'var(--text-muted)', fontSize: '0.6rem', marginBottom: '1.5rem' }}>v1.4.0_STABLE</div>
           
@@ -909,7 +1120,38 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
           )}
         </aside>
 
-        <main style={styles.main}>
+        <main style={{
+          ...styles.main,
+          padding: '3.5rem 3rem 3rem 4.5rem',
+          position: 'relative',
+          transition: 'padding 0.3s ease'
+        }}>
+          <button 
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            style={{
+              position: 'absolute',
+              top: '1rem',
+              left: '1rem',
+              backgroundColor: 'var(--bg-secondary)',
+              border: '1px solid var(--border)',
+              color: sidebarCollapsed ? 'var(--accent-orange)' : 'var(--accent-green)',
+              cursor: 'pointer',
+              fontFamily: 'monospace',
+              fontSize: '0.85rem',
+              padding: '0.2rem 0.5rem',
+              borderRadius: '2px',
+              zIndex: 100,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              boxShadow: '0 0 5px rgba(0, 0, 0, 0.2)',
+              transition: 'all 0.2s'
+            }}
+            title={sidebarCollapsed ? "Sidebar einblenden [ ≡ ]" : "Sidebar ausblenden [ ≡ ]"}
+            className="project-pill"
+          >
+            [ ≡ ]
+          </button>
           {renderContent()}
         </main>
       </div>
