@@ -58,3 +58,33 @@ export function useWikiStats(ready, onLiveEvent) {
 
   return wikiStats;
 }
+
+export function getPhaseProgress(todos, phase) {
+  const phaseTodos = (todos || []).filter(t => {
+    const match = t.tag?.match(/Phase\s+(\d+)/i);
+    const pNum = match ? parseInt(match[1]) : 0;
+    return pNum === phase;
+  });
+  if (phaseTodos.length === 0) return { done: 0, total: 0, percent: 0 };
+  const done = phaseTodos.filter(t => {
+    const status = t.status?.toLowerCase();
+    const title = t.titel?.trim() || '';
+    return status === 'done' || status === 'erledigt' || title.startsWith('✔') || title.startsWith('[x]') || title.startsWith('[X]');
+  }).length;
+  const total = phaseTodos.length;
+  const percent = Math.round((done / total) * 100) || 0;
+  return { done, total, percent };
+}
+
+export function getTotalProgress(todos) {
+  if (!todos || todos.length === 0) return { done: 0, total: 0, percent: 0 };
+  const done = todos.filter(t => {
+    const status = t.status?.toLowerCase();
+    const title = t.titel?.trim() || '';
+    return status === 'done' || status === 'erledigt' || title.startsWith('✔') || title.startsWith('[x]') || title.startsWith('[X]');
+  }).length;
+  const total = todos.length;
+  const percent = Math.round((done / total) * 100) || 0;
+  return { done, total, percent };
+}
+
