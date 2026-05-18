@@ -14,7 +14,7 @@
 
 ## Vision
 
-KAiOSS ist mehr als ein Kanban-Tool.
+KAiOSS ist mehr als ein Kanban-Tool. Es positioniert sich als **"Brain for Developers"**: Local-First, IaC-basiert (NixOS), Hardware-Bridge (MCP), Offline-fähig und Silicon-unabhängig.
 
 Die Idee: **Alle KI-Chats und Projektdaten gebündelt in einer einzigen SurrealDB** — lokal, privat, unter deiner Kontrolle.
 
@@ -47,7 +47,7 @@ OpenAI ──┘                               Chat-History
 | Layer | Technologie |
 |-------|-------------|
 | Frontend | React 18 + Vite 6 |
-| Datenbank | SurrealDB 2.x |
+| Datenbank | SurrealDB 2.3.x |
 | KAi Engine | Claude / Gemini / Groq / Ollama / OpenRouter |
 | Agent | Goose + OpenCode |
 | Styling | CSS Variables, Terminal-Ästhetik |
@@ -189,6 +189,14 @@ Wenn du ein Cloud-Modell (🟡 / 🔴) nutzt, werden **Prompts und Kontext** an 
 
 ---
 
+## Demo
+
+```bash
+make db-demo  # Startet mit Dummy-Daten im isolierten demo-Namespace
+```
+
+---
+
 ## Installation
 
 ```bash
@@ -223,6 +231,13 @@ Code          → Gemini 2.5 Flash
 Ausführung    → Goose + OpenCode
 Reasoning     → Qwen3 32B (Groq)
 ```
+
+---
+
+## Verwandte Projekte
+
+- [Pflanternen](https://github.com/diebugger-tech/Pflanternen)
+  NixOS KI-Automatisierungsframework
 
 ---
 
