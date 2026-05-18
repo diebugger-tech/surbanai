@@ -5,6 +5,7 @@ import remarkGfm from 'remark-gfm';
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter';
 import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
 import Mermaid from './Mermaid';
+import { getPhaseProgress, getTotalProgress } from '../hooks/useWikiStats';
 
 const styles = {
   overlay: {
@@ -147,6 +148,28 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingEntry, setEditingEntry] = useState(null);
+  
+  const [selectedPhase, setSelectedPhase] = useState('ALL');
+  const [collapsedPhases, setCollapsedPhases] = useState({});
+
+  const parsePhase = (tag) => {
+    const match = tag?.match(/Phase\s+(\d+)/i);
+    return match ? parseInt(match[1]) : 0;
+  };
+  const parsePhaseName = (tag) => {
+    const match = tag?.match(/Phase\s+\d+\s*[—-]\s*(.+)/i);
+    return match ? match[1].trim() : tag;
+  };
+  const parseTaskNumber = (title) => {
+    const match = title?.match(/#(\d+)/);
+    return match ? parseInt(match[1], 10) : 999999;
+  };
+  const isCompleted = (todo) => {
+    if (!todo) return false;
+    const status = todo.status?.toLowerCase();
+    const title = todo.titel?.trim() || '';
+    return status === 'done' || status === 'erledigt' || title.startsWith('✔') || title.startsWith('[x]') || title.startsWith('[X]');
+  };
 
   // Auto-switch page & scroll when opened from CommandPalette
   useEffect(() => {
@@ -499,6 +522,237 @@ export default function WikiPanel({ projekt, onClose, selectedWikiEntry }) {
       const scopeMatches = currentScope === 'GLOBAL' || e.projekt === currentScope;
       return typeMatches && scopeMatches;
     });
+
+    if (activePage === 'todo') {
+      // TODO: Phase-Dependency-Graph (vis.js oder D3) — Phase 2 Feature
+
+      const todos = [...filtered].sort((a, b) => {
+        const phaseA = parsePhase(a.tag);
+        const phaseB = parsePhase(b.tag);
+        if (phaseA !== phaseB) return phaseA - phaseB;
+
+        const numA = parseTaskNumber(a.titel);
+        const numB = parseTaskNumber(b.titel);
+        return numA - numB;
+      });
+
+      const totalProgress = getTotalProgress(todos);
+
+      const renderProgressHUD = () => (
+        <div style={{
+          backgroundColor: 'var(--bg-secondary)',
+          border: '1px solid var(--border)',
+          padding: '0.8rem 1.2rem',
+          marginBottom: '1.5rem',
+          fontFamily: 'monospace',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          fontSize: '0.8rem',
+          letterSpacing: '1px'
+        }}>
+          <div style={{ color: 'var(--accent-green)', display: 'flex', alignItems: 'center', gap: '1rem', width: '100%' }}>
+            <span>ROADMAP: {totalProgress.done}/{totalProgress.total}</span>
+            <div style={{
+              flex: 1,
+              height: '8px',
+              backgroundColor: 'rgba(0, 0, 0, 0.3)',
+              border: '1px solid var(--border)',
+              borderRadius: '2px',
+              overflow: 'hidden',
+              position: 'relative'
+            }}>
+              <div style={{
+                width: `${totalProgress.percent}%`,
+                height: '100%',
+                backgroundColor: 'var(--accent, var(--accent-green, #00ffaa))',
+                boxShadow: '0 0 10px rgba(0, 255, 170, 0.5)',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            <span style={{ fontWeight: 'bold' }}>{totalProgress.percent}%</span>
+          </div>
+        </div>
+      );
+
+      const renderPhasePills = () => {
+        const phases = ['ALL', '1', '2', '3', '4', '5'];
+        return (
+          <div style={{
+            display: 'flex',
+            gap: '0.5rem',
+            marginBottom: '1.5rem',
+            fontFamily: 'monospace'
+          }}>
+            {phases.map(p => {
+              const isActive = selectedPhase === p;
+              return (
+                <button
+                  key={p}
+                  onClick={() => setSelectedPhase(p)}
+                  style={{
+                    backgroundColor: isActive ? 'rgba(0, 255, 170, 0.05)' : 'transparent',
+                    border: isActive ? '1px solid var(--accent, var(--accent-green, #00ffaa))' : '1px solid var(--border)',
+                    color: isActive ? 'var(--accent, var(--accent-green, #00ffaa))' : 'var(--text-muted)',
+                    padding: '0.4rem 0.8rem',
+                    cursor: 'pointer',
+                    fontSize: '0.75rem',
+                    fontFamily: 'inherit',
+                    borderRadius: '2px',
+                    transition: 'all 0.2s',
+                    boxShadow: isActive ? '0 0 8px rgba(0, 255, 170, 0.15)' : 'none',
+                    outline: 'none'
+                  }}
+                >
+                  [ {p === 'ALL' ? 'ALL' : `P${p}`} ]
+                </button>
+              );
+            })}
+          </div>
+        );
+      };
+
+      const getPhaseTitle = (phaseNum) => {
+        const firstTodo = todos.find(t => parsePhase(t.tag) === phaseNum);
+        return firstTodo ? firstTodo.tag : `Phase ${phaseNum}`;
+      };
+
+      const isCollapsed = (phaseNum, phaseTodos) => {
+        if (collapsedPhases[phaseNum] !== undefined) {
+          return collapsedPhases[phaseNum];
+        }
+        const openCount = phaseTodos.filter(t => !isCompleted(t)).length;
+        return openCount === 0;
+      };
+
+      const togglePhase = (phaseNum, phaseTodos) => {
+        setCollapsedPhases(prev => ({
+          ...prev,
+          [phaseNum]: !isCollapsed(phaseNum, phaseTodos)
+        }));
+      };
+
+      const renderTaskCard = (entry) => {
+        const completed = isCompleted(entry);
+        return (
+          <div
+            key={entry.id}
+            data-wiki-id={entry.id?.toString()}
+            style={{
+              padding: '0.8rem 1rem',
+              backgroundColor: completed ? 'rgba(0, 255, 170, 0.01)' : 'rgba(255, 255, 255, 0.01)',
+              border: completed ? '1px dashed rgba(0, 255, 170, 0.15)' : '1px solid var(--border)',
+              borderRadius: '2px',
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              fontFamily: 'monospace',
+              fontSize: '0.8rem',
+              transition: 'all 0.2s',
+              opacity: completed ? 0.75 : 1
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flex: 1 }}>
+              <span style={{ color: completed ? 'var(--accent-green)' : 'var(--text-muted)', fontWeight: 'bold' }}>
+                {completed ? '[✔]' : '[ ]'}
+              </span>
+              <span style={{ color: completed ? 'var(--text-muted)' : 'var(--text-primary)', textDecoration: completed ? 'line-through' : 'none' }}>
+                {entry.titel}
+              </span>
+            </div>
+            <span style={{ fontSize: '0.65rem', color: 'var(--text-muted)', border: '1px solid var(--border)', padding: '0.1rem 0.3rem' }}>
+              [ SYNCED ]
+            </span>
+          </div>
+        );
+      };
+
+      const renderAccordion = (phaseNum, phaseTodos) => {
+        const phaseTitle = getPhaseTitle(phaseNum);
+        const collapsed = isCollapsed(phaseNum, phaseTodos);
+        const progress = getPhaseProgress(todos, phaseNum);
+
+        return (
+          <div key={phaseNum} style={{ marginBottom: '1rem' }}>
+            <div
+              onClick={() => togglePhase(phaseNum, phaseTodos)}
+              style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                padding: '0.6rem 0.8rem',
+                backgroundColor: 'var(--bg-secondary)',
+                border: '1px solid var(--border)',
+                cursor: 'pointer',
+                fontFamily: 'monospace',
+                fontSize: '0.8rem',
+                userSelect: 'none'
+              }}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent, var(--accent-green, #00ffaa))' }}>
+                <span>{collapsed ? '▶' : '▼'}</span>
+                <span style={{ fontWeight: 'bold' }}>{phaseTitle}</span>
+              </div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
+                {progress.done}/{progress.total} DONE ({progress.percent}%)
+              </div>
+            </div>
+
+            {!collapsed && (
+              <div style={{
+                padding: '0.5rem 0 0.5rem 1rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.4rem',
+                borderLeft: '1px dotted var(--border)',
+                marginTop: '0.2rem'
+              }}>
+                {phaseTodos.map(renderTaskCard)}
+              </div>
+            )}
+          </div>
+        );
+      };
+
+      // Group todos by phase for ALL view, or render specific phase flat
+      const phaseNum = selectedPhase === 'ALL' ? null : parseInt(selectedPhase, 10);
+      const uniquePhases = Array.from(new Set(todos.map(t => parsePhase(t.tag)))).sort((a, b) => a - b);
+
+      return (
+        <div className="wiki-markdown">
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+            <h2 style={{ textTransform: 'uppercase', margin: 0 }}>
+              {sections.find(p => p.id === activePage)?.icon} TODO ROADMAP
+            </h2>
+            {searchQuery && (
+              <div style={{ fontSize: '0.7rem', color: 'var(--accent-orange)' }}>
+                FILTERING: "{searchQuery}"
+              </div>
+            )}
+          </div>
+
+          {renderProgressHUD()}
+          {renderPhasePills()}
+
+          {loading ? (
+            <div className="skeleton" style={{ height: '100px', width: '100%' }}></div>
+          ) : todos.length === 0 ? (
+            <div style={{ color: 'var(--text-muted)', marginTop: '2rem' }}>&gt; NO TODOS FOUND FOR [{currentScope}]</div>
+          ) : selectedPhase === 'ALL' ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {uniquePhases.map(ph => {
+                const phaseTodos = todos.filter(t => parsePhase(t.tag) === ph);
+                return renderAccordion(ph, phaseTodos);
+              })}
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+              {todos.filter(t => parsePhase(t.tag) === phaseNum).map(renderTaskCard)}
+            </div>
+          )}
+        </div>
+      );
+    }
 
     return (
       <div className="wiki-markdown">
