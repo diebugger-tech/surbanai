@@ -10,6 +10,21 @@
 - `src/App.jsx`: Main application orchestration.
 - `system-check.sh`: Automated environment diagnostics.
 
+## 👥 Agent-Orchester & Roster
+
+Die KAiOSS-Plattform wird von einer Reihe spezialisierter KI-Agenten gesteuert, die über das **Model Context Protocol (MCP)** miteinander und mit dem System kommunizieren:
+
+- **KAi (primär)**: Task-Reasoning, Planung und Code-Generierung.
+- **LearnAgent**: Kontinuierliches Scannen von GitHub Trending, Hacker News und ArXiv.
+- **GitAgent**: Event-driven Ausführung über Git-Hooks.
+- **MarketAgent**: Periodische Markt- und Wettbewerbsanalysen.
+- **SecurityAgent**: On-demand Sicherheits-Audits und Schwachstellen-Scans via MCP.
+
+### ⚙️ Framework & Execution
+- **Framework**: Goose + Ollama + Qwen2.5 (oder `qwen2.5:32b`).
+- **NixOS-native Integration**: Ausführung als deklarative `systemd`-Services.
+- **HITL-Prinzip (Human-in-the-Loop)**: Kritische Operationen (z. B. direkte DB-Resets, destructive system changes oder direkte Main-Pushes) werden **niemals ohne menschliche Freigabe** ausgeführt.
+
 ## 🤖 Critical Rules for Agents
 1. **db.js is Singleton**: Do NOT initialize multiple connections. Use the shared instance.
 2. **Environment Variables**: Access all configuration via `import.meta.env.VITE_*`.
