@@ -51,8 +51,8 @@ CREATE task:demo_task1 SET
     `priorität` = 1,
     tags = ['#Architecture'],
     akzeptanzkriterien = [
-        { kriterium: 'Verbindung als Singleton implementiert', erfüllt: true },
-        { kriterium: 'Verbindungsabbrüche abgefangen', erfüllt: true }
+        { "kriterium": 'Verbindung als Singleton implementiert', "erfüllt": true },
+        { "kriterium": 'Verbindungsabbrüche abgefangen', "erfüllt": true }
     ],
     erstellt = time::now() - 2d;
 
@@ -66,8 +66,8 @@ CREATE task:demo_task2 SET
     `priorität` = 2,
     tags = ['#Security', '#UX'],
     akzeptanzkriterien = [
-        { kriterium: 'Bestätigungs-Dialog bei rm/kill-Befehlen', erfüllt: true },
-        { kriterium: 'Timeout-Fallbacks implementieren', erfüllt: false }
+        { "kriterium": 'Bestätigungs-Dialog bei rm/kill-Befehlen', "erfüllt": true },
+        { "kriterium": 'Timeout-Fallbacks implementieren', "erfüllt": false }
     ],
     erstellt = time::now() - 1d;
 
@@ -81,7 +81,7 @@ CREATE task:demo_task3 SET
     `priorität` = 3,
     tags = ['#Bash', '#NixOS'],
     akzeptanzkriterien = [
-        { kriterium: 'Commit-Hash als ID nutzen', erfüllt: false }
+        { "kriterium": 'Commit-Hash als ID nutzen', "erfüllt": false }
     ],
     erstellt = time::now();
 
