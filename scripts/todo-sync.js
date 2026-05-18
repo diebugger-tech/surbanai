@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import { Surreal } from 'surrealdb';
 
 // Konfiguration
-const DB_ENDPOINT = 'ws://127.0.0.1:8000';
+const DB_ENDPOINT = process.env.VITE_SURREAL_URL ? process.env.VITE_SURREAL_URL.replace('/rpc', '') : 'ws://127.0.0.1:8000';
 const BASE_PATHS = [
   path.join(process.env.HOME || process.env.USERPROFILE, 'Projekte/aktiv'),
   path.join(process.env.HOME || process.env.USERPROFILE, 'Projekte/archiv')
@@ -36,13 +36,18 @@ function findTodoFile(basePath, folderPath) {
 
 async function connectDB() {
     try {
+        const ns = process.env.VITE_SURREAL_NS || 'kaioss';
+        const dbName = process.env.VITE_SURREAL_DB || 'kaioss';
+        const user = process.env.VITE_SURREAL_USER || 'root';
+        const pass = process.env.VITE_SURREAL_PASS || 'root';
+
         await db.connect(DB_ENDPOINT);
         await db.signin({
-            username: 'root',
-            password: 'root',
+            username: user,
+            password: pass,
         });
-        await db.use({ namespace: 'kaioss', database: 'kaioss' });
-        console.log('✅ Verbunden mit SurrealDB');
+        await db.use({ namespace: ns, database: dbName });
+        console.log(`✅ Verbunden mit SurrealDB (NS: ${ns}, DB: ${dbName})`);
     } catch (err) {
         console.error('❌ DB-Verbindungsfehler:', err.message);
         process.exit(1);
