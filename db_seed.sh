@@ -6,15 +6,21 @@ NS=${VITE_SURREAL_NS:-demo}
 DB=${VITE_SURREAL_DB:-demo}
 
 echo "🧹 Initialisiere Schema im Namespace '$NS'..."
-surreal import --endpoint ws://localhost:8000 \
-    --username root --password root \
-    --namespace "$NS" --database "$DB" \
-    src/db/init_clean.surql
+curl -s -X POST \
+    -u "root:root" \
+    -H "Accept: application/json" \
+    -H "Surreal-NS: $NS" \
+    -H "Surreal-DB: $DB" \
+    --data-binary "@src/db/init_clean.surql" \
+    "http://localhost:8000/sql" > /dev/null
 
 echo "🌱 Importiere Demo-Daten in Namespace '$NS'..."
-surreal import --endpoint ws://localhost:8000 \
-    --username root --password root \
-    --namespace "$NS" --database "$DB" \
-    db/seed.surql
+curl -s -X POST \
+    -u "root:root" \
+    -H "Accept: application/json" \
+    -H "Surreal-NS: $NS" \
+    -H "Surreal-DB: $DB" \
+    --data-binary "@db/seed.surql" \
+    "http://localhost:8000/sql" > /dev/null
 
 echo "✅ Demo-Daten erfolgreich in '$NS' geladen!"
