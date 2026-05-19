@@ -1,0 +1,50 @@
+{
+  "nixos-check": {
+    "cmd": "nixos-rebuild dry-activate --flake /etc/nixos",
+    "risiko": "low",
+    "beschreibung": "NixOS Konfiguration prüfen ohne Aktivierung (kein Systemeinfluss)",
+    "sandbox": false
+  },
+  "nixos-switch": {
+    "cmd": "nixos-rebuild switch --flake /etc/nixos",
+    "risiko": "critical",
+    "beschreibung": "NixOS Konfiguration anwenden — erfordert trusted-user",
+    "sandbox": false
+  },
+  "git-nixos-status": {
+    "cmd": "git -C /etc/nixos status",
+    "risiko": "low",
+    "beschreibung": "Git Status von /etc/nixos (nur lesend)",
+    "sandbox": true
+  },
+  "git-nixos-diff": {
+    "cmd": "git -C /etc/nixos diff",
+    "risiko": "low",
+    "beschreibung": "Git Diff von /etc/nixos (nur lesend)",
+    "sandbox": true
+  },
+  "git-nixos-commit-test": {
+    "cmd": "git -C /etc/nixos commit --allow-empty -m test",
+    "risiko": "medium",
+    "beschreibung": "Leerer Test-Commit in /etc/nixos — erfordert Toast-Bestätigung",
+    "sandbox": false
+  },
+  "system-journal": {
+    "cmd": "journalctl -n 50 --no-pager",
+    "risiko": "low",
+    "beschreibung": "Letzte 50 Systemlog-Einträge ausgeben",
+    "sandbox": false
+  },
+  "mem-usage": {
+    "cmd": "free -h",
+    "risiko": "low",
+    "beschreibung": "Arbeitsspeicher-Belegung anzeigen",
+    "sandbox": true
+  },
+  "nixos-diagnose": {
+    "cmd": "bash modules/pflanternen/bin/diagnose.sh",
+    "risiko": "low",
+    "beschreibung": "NixOS Systemdiagnose ausführen und Telemetrie senden",
+    "sandbox": false
+  }
+}
