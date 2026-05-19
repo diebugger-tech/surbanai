@@ -217,7 +217,7 @@ export async function logDecision(db, alias, decision, approvedBy = null) {
                 approved_by:   $approvedBy,
                 timestamp:     time::now()
             }`,
-            { alias, risiko, decision, userApproved, approvedBy: approvedBy ?? null }
+            { alias, risiko, decision, userApproved, approvedBy: approvedBy || undefined }
         );
     } catch (err) {
         // Logging-Fehler darf den Hauptfluss nicht unterbrechen
