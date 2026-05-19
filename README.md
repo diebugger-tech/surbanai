@@ -197,28 +197,38 @@ make db-demo  # Startet mit Dummy-Daten im isolierten demo-Namespace
 
 ---
 
-## Installation
+## Installation & Setup
+
+KAiOSS verfügt über einen interaktiven Setup-Wizard, der das System konfiguriert und optionale Module erkennt.
 
 ```bash
 git clone https://github.com/diebugger-tech/KAiOSS
-cd kaioss
-npm install
+cd KAiOSS
 
-# SurrealDB starten
-surreal start --log trace --user root --pass root memory
-
-# Dev Server
-npm run dev
+# Interaktives Setup starten (erkennt OS und Module)
+make setup
 ```
+
+### Module (Optional)
+
+- **Pflanternen (NixOS-spezifisch)**:
+  Dieses Modul wird unter NixOS automatisch zur Installation vorgeschlagen. Es bietet Systemdiagnosen und Git-Hook Telemetrie im Namespace `pflanternen`.
+  
+  Manuelle Aktivierung unter NixOS:
+  1. `PFLANTERNEN_ENABLED=true` in `.env.local` eintragen.
+  2. Datenbankschema laden: `make install-pflanternen`
 
 ### Umgebungsvariablen
 
+Konfiguration in `.env` (oder überschrieben in `.env.local`):
+
 ```env
-VITE_SURREAL_URL=http://127.0.0.1:8000/rpc
+VITE_SURREAL_URL=ws://127.0.0.1:8000/rpc
 VITE_SURREAL_USER=root
 VITE_SURREAL_PASS=root
 VITE_SURREAL_NS=kaioss
 VITE_SURREAL_DB=kaioss
+PFLANTERNEN_ENABLED=false
 ```
 
 ---
