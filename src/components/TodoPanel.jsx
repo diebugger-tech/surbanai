@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import db from '../lib/db';
 import { useTaskDB, validateBeforeUpdate } from '../hooks/useTaskDB';
 
-export default function TodoPanel({ onClose, onNotify }) {
+export default function TodoPanel({ onClose, onNotify, dbReady = false }) {
   const [todos, setTodos] = useState([]);
   const [filter, setFilter] = useState('alle');
   const [newTodo, setNewTodo] = useState('');
@@ -29,6 +29,8 @@ export default function TodoPanel({ onClose, onNotify }) {
   }, []);
 
   useEffect(() => {
+    if (!dbReady) return;
+
     let unsubscribe = null;
     let isMounted = true;
 
@@ -50,7 +52,7 @@ export default function TodoPanel({ onClose, onNotify }) {
       isMounted = false;
       if (unsubscribe) unsubscribe();
     };
-  }, [load]);
+  }, [load, dbReady]);
 
   const toggleTodo = async (currentTodo) => {
     const update = currentTodo.status === 'done'
