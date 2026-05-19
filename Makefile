@@ -1,4 +1,4 @@
-.PHONY: help dev stop db-start db-stop db-init status
+.PHONY: help dev stop db-start db-stop db-init status security-setup cmd-runner security-test
 
 help: ## Zeigt diese Hilfe
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -71,3 +71,19 @@ db-verify:
 
 db-backup-list:
 	@ls -lh backups/*.surql 2>/dev/null || echo "Keine Backups gefunden"
+
+security-setup: ## Erstellt task_queue + kai_command_log Schema in SurrealDB
+	@echo "🔒 Lade Security-Schema..."
+	surreal sql --endpoint ws://localhost:8000 \
+		--username root --password root \
+		--namespace kaioss --database kaioss \
+		--hide-welcome < scripts/setup-security.surql
+	@echo "✅ Security-Schema geladen"
+
+cmd-runner: ## Startet den Command-Runner (Background Executor)
+	@echo "🤖 Starte cmd-runner..."
+	node scripts/cmd-runner.js
+
+security-test: ## Smoke-Test für bwrap Sandbox (echo-Befehl im Jail)
+	@echo "🔒 Teste bwrap Sandbox..."
+	@bash nixos/bwrap.sh "echo sandbox-ok" test-alias && echo "✅ Sandbox: OK" || echo "❌ Sandbox: FEHLER"
