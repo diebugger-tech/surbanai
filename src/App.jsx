@@ -201,12 +201,14 @@ const styles = {
   kaiOverlay: {
     position: 'fixed',
     top: 0,
+    left: 0,
     right: 0,
-    width: '400px',
-    height: '100vh',
+    bottom: 0,
+    backgroundColor: 'var(--bg-overlay, rgba(0,0,0,0.7))',
     zIndex: 3000,
-    boxShadow: '-5px 0 25px rgba(0,0,0,0.5)',
-    borderLeft: '1px solid var(--border, #30363d)',
-    backgroundColor: 'var(--bg-primary, #0d1117)'
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '2rem'
   }
 };
