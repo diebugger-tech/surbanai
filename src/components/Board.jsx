@@ -12,6 +12,7 @@ export default function Board({
   onDrop,
   onCardClick,
   wikiStats,
+  dbReady = false,
 }) {
   const [dropTarget, setDropTarget] = useState(null);
   // dropTarget shape: { spalte: 'in-progress', index: 2 } | null
@@ -62,6 +63,7 @@ export default function Board({
           onCardClick={onCardClick}
           wikiStats={wikiStats}
           dropTarget={dropTarget}
+          dbReady={dbReady}
         />
       ))}
     </main>
