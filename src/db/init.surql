@@ -53,3 +53,18 @@ FOR $p IN (SELECT name FROM projekt) {
   };
 };
 */
+
+-- 4. Agent Memory / Conversation History Schema
+DEFINE TABLE conversation SCHEMAFULL;
+DEFINE FIELD agent_name ON conversation TYPE string;
+DEFINE FIELD topic      ON conversation TYPE option<string>;
+DEFINE FIELD summary    ON conversation TYPE option<string>;
+DEFINE FIELD created_at ON conversation TYPE datetime DEFAULT time::now();
+DEFINE FIELD updated_at ON conversation TYPE datetime DEFAULT time::now();
+
+DEFINE TABLE conversation_message SCHEMAFULL;
+DEFINE FIELD conversation ON conversation_message TYPE record<conversation>;
+DEFINE FIELD role         ON conversation_message TYPE string; -- 'user' | 'agent' | 'system'
+DEFINE FIELD content      ON conversation_message TYPE string;
+DEFINE FIELD timestamp    ON conversation_message TYPE datetime DEFAULT time::now();
+
