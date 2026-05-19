@@ -160,7 +160,7 @@ export default function App() {
           onClose={() => { setShowWiki(false); setSelectedWikiEntry(null); }}
         />
       )}
-      {showTodo && <TodoPanel onClose={() => setShowTodo(false)} />}
+      {showTodo && <TodoPanel onClose={() => setShowTodo(false)} dbReady={dbStatus === 'ONLINE'} />}
       {showObsidianSync && <ObsidianSync onClose={() => setShowObsidianSync(false)} onNotify={showToast} />}
       
       <CreateProjectModal 
