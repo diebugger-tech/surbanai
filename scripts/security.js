@@ -31,26 +31,54 @@
  * DEFINE FIELD created_at            ON task_queue TYPE datetime DEFAULT time::now();
  */
 
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const COMMANDS_JSON = join(__dirname, '../.kai/commands.json');
 
+// TTL-Cache für Policy-Dateien
+let policyCache = null;
+let lastCacheTime = 0;
+const CACHE_TTL_MS = 5000;
+
 // Polling-Intervall in ms für awaiting_approval-Status
 const POLL_INTERVAL_MS = 2000;
 
 /**
  * loadPolicy() — Liest .kai/commands.json und gibt das Policy-Objekt zurück.
- * Wirft bei Parse-Fehler oder fehlender Datei.
+ * Lädt bei PFLANTERNEN_ENABLED=true zusätzlich die Modul-Policy.
  *
  * @returns {Object} Policy-Mapping: alias → { cmd, risiko, beschreibung, sandbox }
  */
 export function loadPolicy() {
+    const now = Date.now();
+    if (policyCache && (now - lastCacheTime < CACHE_TTL_MS)) {
+        return policyCache;
+    }
+
     try {
         const raw = readFileSync(COMMANDS_JSON, 'utf8');
-        return JSON.parse(raw);
+        let policy = JSON.parse(raw);
+
+        // Modul: Pflanternen (NixOS-spezifisch)
+        const pflanternenEnabled = process.env.PFLANTERNEN_ENABLED === 'true';
+        const pflanternenCommandsPath = join(__dirname, '../modules/pflanternen/.kai/commands.json');
+
+        if (pflanternenEnabled && existsSync(pflanternenCommandsPath)) {
+            try {
+                const pflanternenRaw = readFileSync(pflanternenCommandsPath, 'utf8');
+                const pflanternenPolicy = JSON.parse(pflanternenRaw);
+                policy = { ...policy, ...pflanternenPolicy };
+            } catch (moduleErr) {
+                console.error(`[security] Fehler beim Laden des Pflanternen-Moduls:`, moduleErr.message);
+            }
+        }
+
+        policyCache = policy;
+        lastCacheTime = now;
+        return policy;
     } catch (err) {
         throw new Error(`security: Konnte .kai/commands.json nicht laden: ${err.message}`);
     }
