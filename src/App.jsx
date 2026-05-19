@@ -125,6 +125,7 @@ export default function App() {
             aktiveProjekt={selectedProject} 
             onClose={() => setShowKaiPanel(false)} 
             onOpenWiki={openWikiEntry}
+            dbReady={dbStatus === 'ONLINE'}
           />
         </div>
       )}
