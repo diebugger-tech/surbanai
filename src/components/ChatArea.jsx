@@ -10,7 +10,7 @@ const styles = {
   chatArea: (chatCollapsed) => ({
     flex: chatCollapsed ? 'none' : 1,
     width: chatCollapsed ? '0' : 'auto',
-    minWidth: chatCollapsed ? '0' : 'auto',
+    minWidth: '0',
     display: chatCollapsed ? 'none' : 'flex',
     flexDirection: 'column',
     height: '100%',
@@ -72,7 +72,10 @@ const styles = {
     color: 'var(--text-primary)',
     lineHeight: '1.6',
     margin: 0,
-    fontFamily: 'monospace'
+    fontFamily: 'monospace',
+    wordBreak: 'break-word',
+    overflowWrap: 'break-word',
+    maxWidth: '100%'
   },
   inputRow: {
     display: 'flex',
@@ -159,90 +162,94 @@ export default function ChatArea({
 
   const renderMarkdown = (content) => {
     return (
-      <ReactMarkdown
-        remarkPlugins={[remarkGfm]}
-        components={{
-          code({ node, inline, className, children, ...props }) {
-            const match = /language-(\w+)/.exec(className || '');
-            const lang = match ? match[1] : '';
+      <div className="markdown-body" style={{ wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: '100%' }}>
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ node, inline, className, children, ...props }) {
+              const match = /language-(\w+)/.exec(className || '');
+              const lang = match ? match[1] : '';
 
-            if (!inline && lang === 'mermaid') {
-              return <Mermaid chart={String(children).replace(/\n$/, '')} />;
-            }
+              if (!inline && lang === 'mermaid') {
+                return <Mermaid chart={String(children).replace(/\n$/, '')} />;
+              }
 
-            if (!inline && match) {
-              const codeString = String(children).replace(/\n$/, '');
-              const copyId = 'copy-btn-' + Math.random().toString(36).substr(2, 9);
-              return (
-                <div style={{ position: 'relative', marginTop: '6px', marginBottom: '6px' }}>
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    background: 'var(--bg-secondary)',
-                    border: '1px solid var(--border)',
-                    borderBottom: 'none',
-                    padding: '4px 8px',
-                    borderTopLeftRadius: '4px',
-                    borderTopRightRadius: '4px',
-                    fontSize: '10px',
-                    color: 'var(--text-muted)'
-                  }}>
-                    <span>{lang.toUpperCase()}</span>
-                    <button
-                      onClick={() => {
-                        navigator.clipboard.writeText(codeString);
-                        const btn = document.getElementById(copyId);
-                        if (btn) {
-                          btn.innerText = 'COPIED!';
-                          setTimeout(() => btn.innerText = 'COPY', 1500);
-                        }
-                      }}
-                      id={copyId}
-                      style={{
-                        background: 'none',
+              if (!inline && match) {
+                const codeString = String(children).replace(/\n$/, '');
+                const copyId = 'copy-btn-' + Math.random().toString(36).substr(2, 9);
+                return (
+                  <div style={{ position: 'relative', marginTop: '6px', marginBottom: '6px' }}>
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      background: 'var(--bg-secondary)',
+                      border: '1px solid var(--border)',
+                      borderBottom: 'none',
+                      padding: '4px 8px',
+                      borderTopLeftRadius: '4px',
+                      borderTopRightRadius: '4px',
+                      fontSize: '10px',
+                      color: 'var(--text-muted)'
+                    }}>
+                      <span>{lang.toUpperCase()}</span>
+                      <button
+                        onClick={() => {
+                          navigator.clipboard.writeText(codeString);
+                          const btn = document.getElementById(copyId);
+                          if (btn) {
+                            btn.innerText = 'COPIED!';
+                            setTimeout(() => btn.innerText = 'COPY', 1500);
+                          }
+                        }}
+                        id={copyId}
+                        style={{
+                          background: 'none',
+                          border: '1px solid var(--border)',
+                          color: 'var(--accent-green, #00ffaa)',
+                          fontFamily: 'monospace',
+                          fontSize: '9px',
+                          padding: '2px 6px',
+                          borderRadius: '3px',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        COPY
+                      </button>
+                    </div>
+                    <SyntaxHighlighter
+                      style={vscDarkPlus}
+                      language={lang}
+                      PreTag="div"
+                      customStyle={{
+                        margin: 0,
+                        borderTopLeftRadius: 0,
+                        borderTopRightRadius: 0,
+                        borderBottomLeftRadius: '4px',
+                        borderBottomRightRadius: '4px',
                         border: '1px solid var(--border)',
-                        color: 'var(--accent-green, #00ffaa)',
-                        fontFamily: 'monospace',
-                        fontSize: '9px',
-                        padding: '2px 6px',
-                        borderRadius: '3px',
-                        cursor: 'pointer'
+                        maxWidth: '100%',
+                        overflowX: 'auto'
                       }}
+                      {...props}
                     >
-                      COPY
-                    </button>
+                      {codeString}
+                    </SyntaxHighlighter>
                   </div>
-                  <SyntaxHighlighter
-                    style={vscDarkPlus}
-                    language={lang}
-                    PreTag="div"
-                    customStyle={{
-                      margin: 0,
-                      borderTopLeftRadius: 0,
-                      borderTopRightRadius: 0,
-                      borderBottomLeftRadius: '4px',
-                      borderBottomRightRadius: '4px',
-                      border: '1px solid var(--border)'
-                    }}
-                    {...props}
-                  >
-                    {codeString}
-                  </SyntaxHighlighter>
-                </div>
+                );
+              }
+
+              return (
+                <code className={className} {...props} style={{ background: 'var(--bg-tertiary)', padding: '2px 4px', borderRadius: '3px', color: '#1D9E75', wordBreak: 'break-all', whiteSpace: 'pre-wrap' }}>
+                  {children}
+                </code>
               );
             }
-
-            return (
-              <code className={className} {...props} style={{ background: 'var(--bg-tertiary)', padding: '2px 4px', borderRadius: '3px', color: '#1D9E75' }}>
-                {children}
-              </code>
-            );
-          }
-        }}
-      >
-        {content}
-      </ReactMarkdown>
+          }}
+        >
+          {content}
+        </ReactMarkdown>
+      </div>
     );
   };
 
