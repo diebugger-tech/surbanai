@@ -28,6 +28,7 @@ export default function KanbanColumn({
   onCardClick,
   wikiStats,
   dropTarget,
+  dbReady = false,
 }) {
   const isOver = dropTarget?.spalte === column.id;
 
@@ -106,6 +107,7 @@ export default function KanbanColumn({
                 onDragEnd={onDragEnd}
                 onClick={onCardClick}
                 wikiStats={wikiStats}
+                dbReady={dbReady}
               />
             </React.Fragment>
           ))}
