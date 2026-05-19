@@ -17,6 +17,7 @@
  *   - high/critical Timeout → status = 'timeout', kein Auto-Execute
  */
 
+import { readFileSync, existsSync } from 'fs';
 import { spawn } from 'child_process';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
@@ -29,6 +30,35 @@ import {
 } from './security.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+// Lade .env und .env.local in process.env
+const loadEnv = () => {
+    const envPaths = [
+        join(__dirname, '../.env'),
+        join(__dirname, '../.env.local')
+    ];
+    for (const p of envPaths) {
+        if (existsSync(p)) {
+            try {
+                const content = readFileSync(p, 'utf8');
+                for (const line of content.split('\n')) {
+                    const trimmed = line.trim();
+                    if (!trimmed || trimmed.startsWith('#')) continue;
+                    const idx = trimmed.indexOf('=');
+                    if (idx === -1) continue;
+                    const key = trimmed.slice(0, idx).trim();
+                    const val = trimmed.slice(idx + 1).trim().replace(/^['"]|['"]$/g, '');
+                    process.env[key] = val;
+                }
+            } catch (err) {
+                console.error(`[cmd-runner] Fehler beim Laden von ${p}:`, err.message);
+            }
+        }
+    }
+};
+
+loadEnv();
+
 const BWRAP_SH   = join(__dirname, '../nixos/bwrap.sh');
 
 const DB_ENDPOINT = process.env.VITE_SURREAL_URL
