@@ -1,4 +1,4 @@
-.PHONY: help dev stop db-start db-stop db-init status security-setup cmd-runner security-test
+.PHONY: help dev stop db-start db-stop db-init status security-setup cmd-runner security-test setup detect-os sync-projects install-pflanternen
 
 help: ## Zeigt diese Hilfe
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'
@@ -87,3 +87,38 @@ cmd-runner: ## Startet den Command-Runner (Background Executor)
 security-test: ## Smoke-Test für bwrap Sandbox (echo-Befehl im Jail)
 	@echo "🔒 Teste bwrap Sandbox..."
 	@bash nixos/bwrap.sh "echo sandbox-ok" test-alias && echo "✅ Sandbox: OK" || echo "❌ Sandbox: FEHLER"
+
+setup: ## Startet den interaktiven Setup-Wizard
+	@bash scripts/setup.sh
+
+detect-os: ## Erkennt das aktuelle Betriebssystem und gibt es aus
+	@echo "🔍 Erkenne Betriebssystem..."
+	@if command -v nixos-rebuild &>/dev/null; then \
+		echo "NixOS"; \
+	elif [ "$$(uname)" = "Darwin" ]; then \
+		echo "macOS"; \
+	elif [ -f /proc/version ] && grep -qi microsoft /proc/version; then \
+		echo "Windows (WSL)"; \
+	else \
+		echo "$$(uname) (Linux)"; \
+	fi
+
+sync-projects: ## Synchronisiert lokale Projekte nach SurrealDB
+	@echo "🔄 Synchronisiere Projekte..."
+	@bash scripts/sync-projects.sh
+
+install-pflanternen: ## Installiert SurrealDB-Schema für Pflanternen (NixOS)
+	@echo "🌱 Installiere Pflanternen-Schema..."
+	@ENDPOINT=$$( ( [ -f .env ] && grep '^VITE_SURREAL_URL=' .env | cut -d'=' -f2- ; [ -f .env.local ] && grep '^VITE_SURREAL_URL=' .env.local | cut -d'=' -f2- ) | tail -n 1 ); \
+	ENDPOINT=$${ENDPOINT:-ws://localhost:8000/rpc}; \
+	ENDPOINT=$${ENDPOINT%/rpc}; \
+	USER=$$( ( [ -f .env ] && grep '^VITE_SURREAL_USER=' .env | cut -d'=' -f2- ; [ -f .env.local ] && grep '^VITE_SURREAL_USER=' .env.local | cut -d'=' -f2- ) | tail -n 1 ); \
+	USER=$${USER:-root}; \
+	PASS=$$( ( [ -f .env ] && grep '^VITE_SURREAL_PASS=' .env | cut -d'=' -f2- ; [ -f .env.local ] && grep '^VITE_SURREAL_PASS=' .env.local | cut -d'=' -f2- ) | tail -n 1 ); \
+	PASS=$${PASS:-root}; \
+	surreal sql --endpoint "$$ENDPOINT" \
+		--username "$$USER" --password "$$PASS" \
+		--namespace pflanternen --database diagnosen \
+		--hide-welcome < modules/pflanternen/surql/nixos_training_game.surql
+	@echo "✅ Pflanternen-Schema geladen"
+
